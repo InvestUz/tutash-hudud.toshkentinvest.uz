@@ -336,7 +336,7 @@
             <p class="text-sm text-gray-500 mt-2">Xaritada bosing yoki "Joylashuvni aniqlash" tugmasini bosing</p>
         </div>
 
-        <!-- Fayllar -->
+        <!-- Fayllar - Updated Image Section -->
         <div class="mb-8">
             <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
                 <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,15 +345,29 @@
                 Fayllar
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Images Section -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Rasmlar (kamida 4 ta) <span class="text-red-500">*</span>
-                    </label>
-                    <input type="file" name="images[]" id="images" multiple accept="image/*" required
-                           onchange="previewImages(this)"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                    <p class="text-sm text-gray-500 mt-1">JPEG, PNG, JPG formatida, har biri maksimal 2MB</p>
-                    <div id="imagePreview" class="grid grid-cols-4 gap-2 mt-2"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <label class="block text-sm font-medium text-gray-700">
+                            Rasmlar (kamida 4 ta) <span class="text-red-500">*</span>
+                        </label>
+                        <button type="button" onclick="addImageField()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded">
+                            + Qo'shish
+                        </button>
+                    </div>
+
+                    <!-- Image Upload Fields Container -->
+                    <div id="imageFieldsContainer" class="space-y-3">
+                        <!-- Default 4 image fields will be added here by JavaScript -->
+                    </div>
+
+                    <!-- Image Counter -->
+                    <div class="mt-3 p-2 bg-gray-50 rounded text-sm">
+                        <span id="imageCounter" class="font-medium">Jami rasmlar: 0</span>
+                        <span class="text-gray-500 ml-2">(Kamida 4 ta kerak)</span>
+                    </div>
+
                     @error('images')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -362,6 +376,7 @@
                     @enderror
                 </div>
 
+                <!-- Act File -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Akt fayli (ixtiyoriy)
@@ -448,52 +463,172 @@
 
 @section('scripts')
 <script>
-    // =============== CREATE FORM SPECIFIC FUNCTIONS ===============
+    // =============== IMAGE FIELD MANAGEMENT ===============
 
-    function toggleTenantFields(checkbox) {
-        const tenantFields = document.getElementById('tenantFields');
-        if (checkbox.checked) {
-            tenantFields.classList.remove('hidden');
-        } else {
-            tenantFields.classList.add('hidden');
+    let imageFieldIndex = 0;
+    let totalImages = 0;
+
+    // Initialize default image fields when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add 4 default image fields
+        for (let i = 0; i < 4; i++) {
+            addImageField();
+        }
+        updateImageCounter();
+
+        // Initialize other components
+        initializeForm();
+    });
+
+    function addImageField() {
+        const container = document.getElementById('imageFieldsContainer');
+        const fieldId = 'image_field_' + imageFieldIndex;
+
+        const fieldHtml = `
+            <div id="${fieldId}" class="image-field border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-medium text-gray-700">
+                        Rasm ${imageFieldIndex + 1}
+                    </label>
+                    <button type="button" onclick="removeImageField('${fieldId}')"
+                            class="text-red-500 hover:text-red-700 text-sm">
+                        × O'chirish
+                    </button>
+                </div>
+
+                <input type="file"
+                       name="images[]"
+                       id="image_input_${imageFieldIndex}"
+                       accept="image/*"
+                       onchange="handleImageChange(this, '${fieldId}')"
+                       class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+
+                <div class="mt-2 text-xs text-gray-500">
+                    JPEG, PNG, JPG formatida, maksimal 2MB
+                </div>
+
+                <!-- Image Preview -->
+                <div id="preview_${fieldId}" class="mt-3 hidden">
+                    <img id="img_${fieldId}" src="" alt="Preview"
+                         class="w-24 h-24 object-cover rounded border">
+                    <div id="info_${fieldId}" class="text-xs text-gray-500 mt-1"></div>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', fieldHtml);
+        imageFieldIndex++;
+        updateImageCounter();
+    }
+
+    function removeImageField(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            // Check if this field had an image
+            const input = field.querySelector('input[type="file"]');
+            if (input && input.files.length > 0) {
+                totalImages--;
+            }
+
+            field.remove();
+            updateImageCounter();
+
+            // Renumber remaining fields
+            renumberImageFields();
         }
     }
 
-    // Initialize map when page loads - Create form specific
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Create form: Initializing...');
+    function renumberImageFields() {
+        const fields = document.querySelectorAll('.image-field');
+        fields.forEach((field, index) => {
+            const label = field.querySelector('label');
+            if (label) {
+                label.textContent = `Rasm ${index + 1}`;
+            }
+        });
+    }
 
-        // Wait for global scripts to load
-        setTimeout(() => {
-            // Check if global functions are available
-            if (typeof initMap === 'function' && typeof TASHKENT_CONFIG !== 'undefined') {
-                console.log('Global functions found, initializing map...');
-                initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
+    function handleImageChange(input, fieldId) {
+        const file = input.files[0];
+        const preview = document.getElementById(`preview_${fieldId}`);
+        const img = document.getElementById(`img_${fieldId}`);
+        const info = document.getElementById(`info_${fieldId}`);
+
+        if (file) {
+            // Validate file size (2MB = 2048KB)
+            if (file.size > 2048 * 1024) {
+                alert('Fayl hajmi 2MB dan oshmasligi kerak!');
+                input.value = '';
+                preview.classList.add('hidden');
+                return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Faqat rasm fayllarini tanlang!');
+                input.value = '';
+                preview.classList.add('hidden');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                info.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+
+            totalImages++;
+            input.classList.remove('border-red-500');
+            input.classList.add('border-green-500');
+        } else {
+            preview.classList.add('hidden');
+            if (totalImages > 0) totalImages--;
+            input.classList.remove('border-green-500');
+        }
+
+        updateImageCounter();
+    }
+
+    function updateImageCounter() {
+        const counter = document.getElementById('imageCounter');
+        const fields = document.querySelectorAll('.image-field input[type="file"]');
+        let filledFields = 0;
+
+        fields.forEach(input => {
+            if (input.files.length > 0) {
+                filledFields++;
+            }
+        });
+
+        totalImages = filledFields;
+
+        if (counter) {
+            counter.textContent = `Jami rasmlar: ${totalImages}`;
+
+            // Update counter color based on requirement
+            const counterContainer = counter.parentElement;
+            if (totalImages >= 4) {
+                counterContainer.className = 'mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm';
+                counter.className = 'font-medium text-green-700';
             } else {
-                console.error('Global functions not found, retrying...');
-                // Retry after 1 second
-                setTimeout(() => {
-                    if (typeof initMap === 'function') {
-                        initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
-                    }
-                }, 1000);
+                counterContainer.className = 'mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm';
+                counter.className = 'font-medium text-red-700';
             }
+        }
+    }
 
-            // Load mahallas if district is already selected
-            const districtSelect = document.getElementById('district_id');
-            if (districtSelect && districtSelect.value) {
-                loadMahallas(districtSelect.value, 'mahalla_id', {{ old('mahalla_id', 'null') }});
-            }
-        }, 500);
-    });
+    // =============== FORM VALIDATION ===============
 
-    // Custom validation for create form
     function validateForm() {
-        console.log('Validating create form...');
+        console.log('Validating form...');
 
         const requiredFields = document.querySelectorAll('[required]');
         let isValid = true;
 
+        // Validate required fields
         requiredFields.forEach(field => {
             if (!field.value.trim()) {
                 field.classList.add('border-red-500');
@@ -503,14 +638,18 @@
             }
         });
 
-        // Check images - must have at least 4
-        const images = document.getElementById('images');
-        if (images && images.files.length < 4) {
+        // Validate images - must have at least 4
+        if (totalImages < 4) {
             alert('Kamida 4 ta rasm yuklang!');
-            images.classList.add('border-red-500');
             isValid = false;
-        } else if (images) {
-            images.classList.remove('border-red-500');
+
+            // Highlight empty image fields
+            const imageFields = document.querySelectorAll('.image-field input[type="file"]');
+            imageFields.forEach(input => {
+                if (input.files.length === 0) {
+                    input.classList.add('border-red-500');
+                }
+            });
         }
 
         // Check adjacent facilities - at least one must be selected
@@ -548,105 +687,54 @@
         return isValid;
     }
 
-    // Enhanced image preview for create form
-    function previewImages(input) {
-        const preview = document.getElementById('imagePreview');
-        if (!preview) return;
+    // =============== TENANT FIELDS TOGGLE ===============
 
-        preview.innerHTML = '';
-
-        if (input.files && input.files.length > 0) {
-            // Show file count status
-            let statusClass = 'bg-red-50 text-red-700 border-red-200';
-            let statusMessage = `${input.files.length} ta rasm tanlandi. Kamida 4 ta kerak.`;
-
-            if (input.files.length >= 4) {
-                statusClass = 'bg-green-50 text-green-700 border-green-200';
-                statusMessage = `${input.files.length} ta rasm tanlandi. ✓`;
-            }
-
-            const statusDiv = document.createElement('div');
-            statusDiv.className = `col-span-4 text-sm text-center p-2 rounded border ${statusClass}`;
-            statusDiv.textContent = statusMessage;
-            preview.appendChild(statusDiv);
-
-            // Show image previews (max 12 to prevent performance issues)
-            Array.from(input.files).slice(0, 12).forEach((file, index) => {
-                // Check file size
-                if (file.size > 2048 * 1024) { // 2MB
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'col-span-1 text-red-500 text-xs text-center p-2 bg-red-50 rounded border border-red-200';
-                    errorDiv.innerHTML = `
-                        <div class="mb-1">❌</div>
-                        <div class="truncate">${file.name.length > 10 ? file.name.substring(0, 10) + '...' : file.name}</div>
-                        <div>Juda katta!</div>
-                        <div>(${(file.size / 1024 / 1024).toFixed(1)}MB)</div>
-                    `;
-                    preview.appendChild(errorDiv);
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const div = document.createElement('div');
-                    div.className = 'relative group';
-                    div.innerHTML = `
-                        <img src="${e.target.result}"
-                             class="w-full h-20 object-cover rounded border group-hover:opacity-75 transition-opacity"
-                             alt="Preview ${index + 1}">
-                        <button type="button"
-                                onclick="removeImageFromPreview(${index})"
-                                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                                title="O'chirish">×</button>
-                        <div class="text-xs text-center mt-1 text-gray-500 truncate" title="${file.name}">
-                            ${file.name.length > 8 ? file.name.substring(0, 8) + '...' : file.name}
-                        </div>
-                        <div class="text-xs text-center text-gray-400">
-                            ${(file.size / 1024).toFixed(0)}KB
-                        </div>
-                    `;
-                    preview.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-
-            // Show message if more than 12 files
-            if (input.files.length > 12) {
-                const moreDiv = document.createElement('div');
-                moreDiv.className = 'col-span-4 text-sm text-center p-2 bg-blue-50 text-blue-700 rounded border border-blue-200';
-                moreDiv.textContent = `... va yana ${input.files.length - 12} ta fayl`;
-                preview.appendChild(moreDiv);
-            }
-        }
-    }
-
-    // Remove image from preview
-    function removeImageFromPreview(index) {
-        const input = document.getElementById('images');
-        if (!input) return;
-
-        const dt = new DataTransfer();
-
-        Array.from(input.files).forEach((file, i) => {
-            if (i !== index) {
-                dt.items.add(file);
-            }
-        });
-
-        input.files = dt.files;
-        previewImages(input);
-
-        // Update validation state
-        if (input.files.length < 4) {
-            input.classList.add('border-red-500');
+    function toggleTenantFields(checkbox) {
+        const tenantFields = document.getElementById('tenantFields');
+        if (checkbox.checked) {
+            tenantFields.classList.remove('hidden');
         } else {
-            input.classList.remove('border-red-500');
-            input.classList.add('border-green-500');
+            tenantFields.classList.add('hidden');
         }
     }
 
-    // Real-time validation for create form
-    document.addEventListener('DOMContentLoaded', function() {
+    // =============== FORM INITIALIZATION ===============
+
+    function initializeForm() {
+        console.log('Form initializing...');
+
+        // Wait for global scripts to load
+        setTimeout(() => {
+            // Check if global functions are available
+            if (typeof initMap === 'function' && typeof TASHKENT_CONFIG !== 'undefined') {
+                console.log('Global functions found, initializing map...');
+                initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
+            } else {
+                console.error('Global functions not found, retrying...');
+                // Retry after 1 second
+                setTimeout(() => {
+                    if (typeof initMap === 'function') {
+                        initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
+                    }
+                }, 1000);
+            }
+
+            // Load mahallas if district is already selected
+            const districtSelect = document.getElementById('district_id');
+            if (districtSelect && districtSelect.value) {
+                if (typeof loadMahallas === 'function') {
+                    loadMahallas(districtSelect.value, 'mahalla_id');
+                }
+            }
+        }, 500);
+
+        // Setup real-time validation
+        setupRealTimeValidation();
+    }
+
+    // =============== REAL-TIME VALIDATION ===============
+
+    function setupRealTimeValidation() {
         // Required fields validation
         const requiredFields = document.querySelectorAll('[required]');
         requiredFields.forEach(field => {
@@ -686,23 +774,10 @@
                 }
             });
         });
+    }
 
-        // Images validation
-        const imagesInput = document.getElementById('images');
-        if (imagesInput) {
-            imagesInput.addEventListener('change', function() {
-                if (this.files.length >= 4) {
-                    this.classList.remove('border-red-500');
-                    this.classList.add('border-green-500');
-                } else {
-                    this.classList.add('border-red-500');
-                    this.classList.remove('border-green-500');
-                }
-            });
-        }
-    });
+    // =============== LOCATION FUNCTIONS ===============
 
-    // Test current location button
     function testLocationButton() {
         console.log('Testing location button...');
         if (typeof getCurrentLocation === 'function') {
@@ -713,10 +788,131 @@
         }
     }
 
-    // Add manual test functions for debugging
-    window.testLocationButton = testLocationButton;
+    function getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
 
-    // Debug current state
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lng;
+
+                    // Update map if available
+                    if (typeof map !== 'undefined' && map) {
+                        map.setView([lat, lng], 16);
+
+                        // Remove existing marker and add new one
+                        if (typeof marker !== 'undefined' && marker) {
+                            map.removeLayer(marker);
+                        }
+
+                        if (typeof L !== 'undefined') {
+                            marker = L.marker([lat, lng]).addTo(map);
+                        }
+                    }
+
+                    alert('Joylashuv muvaffaqiyatli aniqlandi!');
+                },
+                function(error) {
+                    let errorMessage = 'Joylashuvni aniqlab bo\'lmadi: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += 'Ruxsat berilmagan';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += 'Ma\'lumot mavjud emas';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += 'Vaqt tugadi';
+                            break;
+                        default:
+                            errorMessage += 'Noma\'lum xato';
+                            break;
+                    }
+                    alert(errorMessage);
+                }
+            );
+        } else {
+            alert('Brauzer geolokatsiyani qo\'llab-quvvatlamaydi!');
+        }
+    }
+
+    // =============== MODAL FUNCTIONS ===============
+
+    function showAddMahallaModal(districtId) {
+        if (!districtId) {
+            alert('Avval tumanni tanlang!');
+            return;
+        }
+
+        document.getElementById('newMahallaDistrictId').value = districtId;
+        document.getElementById('addMahallaModal').classList.remove('hidden');
+        document.getElementById('newMahallaName').focus();
+    }
+
+    function showAddStreetModal(mahallaId) {
+        if (!mahallaId) {
+            alert('Avval mahallani tanlang!');
+            return;
+        }
+
+        document.getElementById('newStreetMahallaId').value = mahallaId;
+        document.getElementById('addStreetModal').classList.remove('hidden');
+        document.getElementById('newStreetName').focus();
+    }
+
+    function hideModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+
+        // Clear form inputs
+        if (modalId === 'addMahallaModal') {
+            document.getElementById('newMahallaName').value = '';
+        } else if (modalId === 'addStreetModal') {
+            document.getElementById('newStreetName').value = '';
+        }
+    }
+
+    function addNewMahalla() {
+        const districtId = document.getElementById('newMahallaDistrictId').value;
+        const name = document.getElementById('newMahallaName').value.trim();
+
+        if (!name) {
+            alert('Mahalla nomini kiriting!');
+            return;
+        }
+
+        // Here you would typically make an AJAX call to save the new mahalla
+        // For now, we'll just add it to the select temporarily
+        const select = document.getElementById('mahalla_id');
+        const option = new Option(name, 'new_' + Date.now(), true, true);
+        select.add(option);
+
+        hideModal('addMahallaModal');
+        alert('Mahalla qo\'shildi!');
+    }
+
+    function addNewStreet() {
+        const mahallaId = document.getElementById('newStreetMahallaId').value;
+        const name = document.getElementById('newStreetName').value.trim();
+
+        if (!name) {
+            alert('Ko\'cha nomini kiriting!');
+            return;
+        }
+
+        // Here you would typically make an AJAX call to save the new street
+        // For now, we'll just add it to the select temporarily
+        const select = document.getElementById('street_id');
+        const option = new Option(name, 'new_' + Date.now(), true, true);
+        select.add(option);
+
+        hideModal('addStreetModal');
+        alert('Ko\'cha qo\'shildi!');
+    }
+
+    // =============== DEBUG FUNCTIONS ===============
+
     function debugCreateForm() {
         console.log('=== Create Form Debug ===');
         console.log('Map available:', typeof map !== 'undefined' ? 'Yes' : 'No');
@@ -724,14 +920,55 @@
         console.log('getCurrentLocation function:', typeof getCurrentLocation !== 'undefined' ? 'Available' : 'Not available');
         console.log('TASHKENT_CONFIG:', typeof TASHKENT_CONFIG !== 'undefined' ? TASHKENT_CONFIG : 'Not available');
         console.log('Map container exists:', document.getElementById('map') ? 'Yes' : 'No');
+        console.log('Total image fields:', imageFieldIndex);
+        console.log('Total images uploaded:', totalImages);
+        console.log('loadMahallas function:', typeof loadMahallas !== 'undefined' ? 'Available' : 'Not available');
         console.log('========================');
     }
 
-    window.debugCreateForm = debugCreateForm;
+    // =============== KEYBOARD SHORTCUTS ===============
 
-    // Auto-debug after page loads
+    document.addEventListener('keydown', function(e) {
+        // Close modals with Escape key
+        if (e.key === 'Escape') {
+            const modals = ['addMahallaModal', 'addStreetModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal && !modal.classList.contains('hidden')) {
+                    hideModal(modalId);
+                }
+            });
+        }
+
+        // Add image field with Ctrl+I
+        if (e.ctrlKey && e.key === 'i') {
+            e.preventDefault();
+            addImageField();
+        }
+    });
+
+    // =============== EXPORT FUNCTIONS FOR TESTING ===============
+
+    window.testLocationButton = testLocationButton;
+    window.debugCreateForm = debugCreateForm;
+    window.addImageField = addImageField;
+    window.removeImageField = removeImageField;
+    window.handleImageChange = handleImageChange;
+    window.validateForm = validateForm;
+    window.toggleTenantFields = toggleTenantFields;
+    window.showAddMahallaModal = showAddMahallaModal;
+    window.showAddStreetModal = showAddStreetModal;
+    window.hideModal = hideModal;
+    window.addNewMahalla = addNewMahalla;
+    window.addNewStreet = addNewStreet;
+    window.getCurrentLocation = getCurrentLocation;
+
+    // Auto-debug after page loads (optional)
     setTimeout(() => {
         debugCreateForm();
     }, 2000);
+
 </script>
 @endsection
+
+
