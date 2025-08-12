@@ -24,6 +24,10 @@ class District extends Model
     {
         return $this->hasMany(Mahalla::class);
     }
+    public function streets(): HasMany
+    {
+        return $this->hasMany(Street::class);
+    }
 
     public function users(): HasMany
     {

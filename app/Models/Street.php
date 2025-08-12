@@ -4,30 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Street extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'mahalla_id',
+        'district_id',
         'name',
         'is_active'
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
-    public function mahalla(): BelongsTo
+    // Relationship with District
+    public function district()
     {
-        return $this->belongsTo(Mahalla::class);
+        return $this->belongsTo(District::class);
     }
 
-    public function properties(): HasMany
+    // Scope for active streets
+    public function scopeActive($query)
     {
-        return $this->hasMany(Property::class);
+        return $query->where('is_active', true);
+    }
+
+    // Scope for district
+    public function scopeByDistrict($query, $districtId)
+    {
+        return $query->where('district_id', $districtId);
     }
 }

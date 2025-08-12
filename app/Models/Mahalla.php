@@ -26,10 +26,6 @@ class Mahalla extends Model
         return $this->belongsTo(District::class);
     }
 
-    public function streets(): HasMany
-    {
-        return $this->hasMany(Street::class);
-    }
 
     public function properties(): HasMany
     {

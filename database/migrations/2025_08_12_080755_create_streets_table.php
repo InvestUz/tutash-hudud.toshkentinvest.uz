@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('streets', function (Blueprint $table) {
+         Schema::create('streets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('mahalla_id')->constrained()->onDelete('cascade');
+            $table->foreignId('district_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
