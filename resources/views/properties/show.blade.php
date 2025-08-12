@@ -240,7 +240,7 @@
 </div>
 
 <!-- Image Modal -->
-<div id="imageModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+<div id="imageModal" style="z-index: 9999;" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full">
             <div class="px-6 py-4 border-b flex justify-between items-center">
