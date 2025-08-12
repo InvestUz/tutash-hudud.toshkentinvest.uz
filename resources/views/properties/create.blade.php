@@ -3,6 +3,9 @@
 @section('title', 'Yangi mulk qo\'shish')
 
 @section('content')
+    <!-- Make sure you have CSRF token in your layout head section -->
+    <!-- Add this if not already present: <meta name="csrf-token" content="{{ csrf_token() }}"> -->
+    
     <div class="bg-white shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center">
@@ -15,8 +18,31 @@
             </div>
         </div>
 
+        <!-- File Upload Errors Display -->
+        @if ($errors->any())
+            <div class="px-6 py-4 bg-red-50 border-l-4 border-red-400">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Quyidagi xatolarni to'g'irlang:</h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('properties.store') }}" enctype="multipart/form-data"
-            onsubmit="return validateForm()" class="px-6 py-4">
+            onsubmit="return validateForm()" class="px-6 py-4" id="propertyForm">
             @csrf
 
             <!-- Bino egasi ma'lumotlari -->
@@ -34,20 +60,18 @@
                             Korxona nomi / F.I.SH <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="owner_name" value="{{ old('owner_name') }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('owner_name') border-red-500 @enderror">
                         @error('owner_name')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-
-                  
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             STIR/PINFL <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="owner_stir_pinfl" value="{{ old('owner_stir_pinfl') }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('owner_stir_pinfl') border-red-500 @enderror">
                         @error('owner_stir_pinfl')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -59,7 +83,7 @@
                         </label>
                         <input type="text" name="building_cadastr_number" value="{{ old('building_cadastr_number') }}"
                             required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('building_cadastr_number') border-red-500 @enderror">
                         @error('building_cadastr_number')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -71,7 +95,7 @@
                         </label>
                         <input type="text" name="object_name" value="{{ old('object_name') }}"
                             placeholder="Masalan: Alohida turgan bino, Ko'p qavatli binoning noturar qismi" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('object_name') border-red-500 @enderror">
                         @error('object_name')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -82,13 +106,12 @@
                             Faoliyat turi <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="activity_type" value="{{ old('activity_type') }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('activity_type') border-red-500 @enderror"
                             placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish">
                         @error('activity_type')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-
                 </div>
             </div>
 
@@ -118,20 +141,18 @@
                             Korxona nomi / Ijarachi F.I.SH
                         </label>
                         <input type="text" name="tenant_name" value="{{ old('tenant_name') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('tenant_name') border-red-500 @enderror">
                         @error('tenant_name')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-
-                  
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             STIR/PINFL
                         </label>
                         <input type="text" name="tenant_stir_pinfl" value="{{ old('tenant_stir_pinfl') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('tenant_stir_pinfl') border-red-500 @enderror">
                         @error('tenant_stir_pinfl')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -141,15 +162,14 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Faoliyat turi <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="tenant_activity_type" value="{{ old('tenant_activity_type') }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        <input type="text" name="tenant_activity_type" value="{{ old('tenant_activity_type') }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('tenant_activity_type') border-red-500 @enderror"
                             placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish">
                         @error('tenant_activity_type')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
-
             </div>
 
             <!-- Manzil ma'lumotlari -->
@@ -170,7 +190,7 @@
                         </label>
                         <select name="district_id" id="district_id" required
                             onchange="loadMahallas(this.value, 'mahalla_id')"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('district_id') border-red-500 @enderror">
                             <option value="">Tumanni tanlang</option>
                             @foreach ($districts as $district)
                                 <option value="{{ $district->id }}"
@@ -191,7 +211,7 @@
                         <div class="flex">
                             <select name="mahalla_id" id="mahalla_id" required
                                 onchange="loadStreets(this.value, 'street_id')"
-                                class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('mahalla_id') border-red-500 @enderror">
                                 <option value="">Mahallani tanlang yoki yarating</option>
                             </select>
                             <button type="button"
@@ -211,7 +231,7 @@
                         </label>
                         <div class="flex">
                             <select name="street_id" id="street_id" required
-                                class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('street_id') border-red-500 @enderror">
                                 <option value="">Ko'chani tanlang yoki yarating</option>
                             </select>
                             <button type="button"
@@ -230,7 +250,7 @@
                             Uy raqami <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="house_number" value="{{ old('house_number') }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('house_number') border-red-500 @enderror"
                             placeholder="Masalan: 15A">
                         @error('house_number')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -242,7 +262,7 @@
                             Mo'ljal uchun qo'shimcha ma'lumot
                         </label>
                         <textarea name="additional_info" rows="3"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('additional_info') border-red-500 @enderror"
                             placeholder="Masalan: Oloy bozori yonida, yashil uy">{{ old('additional_info') }}</textarea>
                         @error('additional_info')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -268,20 +288,20 @@
                         </label>
                         <input type="text" name="adjacent_activity_type" value="{{ old('adjacent_activity_type') }}"
                             required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('adjacent_activity_type') border-red-500 @enderror"
                             placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish, Elektr quvvatlash stantsiyasi">
                         @error('adjacent_activity_type')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-   <div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Tutash hudud maydoni <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="adjacent_activity_land" value="{{ old('adjacent_activity_land') }}"
                             required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('adjacent_activity_land') border-red-500 @enderror"
                             placeholder="kv.m">
                         @error('adjacent_activity_land')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -292,7 +312,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Tutash hududdagi qurilmalar <span class="text-red-500">*</span>
                         </label>
-                        <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                        <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3 @error('adjacent_facilities') border-red-500 @enderror">
                             @php
                                 $facilities = [
                                     'kapital_qurilma' => 'Kapital qurilma',
@@ -318,6 +338,27 @@
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <!-- Design Code File - NEW FIELD -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Loyiha kodi fayli (ixtiyoriy)
+                        </label>
+                        <input type="file" name="design_code_file" accept=".pdf,.doc,.docx,.dwg,.zip"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('design_code_file') border-red-500 @enderror">
+                        <p class="text-sm text-gray-500 mt-1">PDF, DOC, DOCX, DWG, ZIP formatida, maksimal 10MB</p>
+                        @error('design_code_file')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                        
+                        <!-- Show previously uploaded file if validation failed -->
+                        @if(old('design_code_file_name'))
+                            <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                                <span class="text-sm text-blue-700">Yuklangan fayl: {{ old('design_code_file_name') }}</span>
+                                <input type="hidden" name="design_code_file_temp" value="{{ old('design_code_file_temp') }}">
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 
@@ -336,7 +377,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Kenglik (Latitude)</label>
                         <input type="number" step="any" name="latitude" id="latitude"
                             value="{{ old('latitude') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('latitude') border-red-500 @enderror"
                             placeholder="41.2995">
                         @error('latitude')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -346,7 +387,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Uzunlik (Longitude)</label>
                         <input type="number" step="any" name="longitude" id="longitude"
                             value="{{ old('longitude') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('longitude') border-red-500 @enderror"
                             placeholder="69.2401">
                         @error('longitude')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -386,6 +427,22 @@
                             </button>
                         </div>
 
+                        <!-- Show validation errors from previous upload attempt -->
+                        @if(session('uploaded_images'))
+                            <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded">
+                                <p class="text-sm text-green-700 font-medium">Avvalgi yuklash urinishida {{ count(session('uploaded_images')) }} ta rasm saqlandi:</p>
+                                <ul class="text-xs text-green-600 mt-1">
+                                    @foreach(session('uploaded_images') as $image)
+                                        <li>{{ basename($image) }}</li>
+                                    @endforeach
+                                </ul>
+                                <!-- Hidden inputs to preserve uploaded images -->
+                                @foreach(session('uploaded_images') as $index => $image)
+                                    <input type="hidden" name="temp_images[]" value="{{ $image }}">
+                                @endforeach
+                            </div>
+                        @endif
+
                         <!-- Image Upload Fields Container -->
                         <div id="imageFieldsContainer" class="space-y-3">
                             <!-- Default 4 image fields will be added here by JavaScript -->
@@ -411,11 +468,19 @@
                             Akt fayli (ixtiyoriy)
                         </label>
                         <input type="file" name="act_file" accept=".pdf,.doc,.docx"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('act_file') border-red-500 @enderror">
                         <p class="text-sm text-gray-500 mt-1">PDF, DOC, DOCX formatida, maksimal 10MB</p>
                         @error('act_file')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
+                        
+                        <!-- Show previously uploaded act file if validation failed -->
+                        @if(session('uploaded_act_file'))
+                            <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                                <span class="text-sm text-blue-700">Yuklangan fayl: {{ basename(session('uploaded_act_file')) }}</span>
+                                <input type="hidden" name="temp_act_file" value="{{ session('uploaded_act_file') }}">
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -494,16 +559,24 @@
 
         let imageFieldIndex = 0;
         let totalImages = 0;
+        let tempImages = @json(session('uploaded_images', []));
 
         // Initialize default image fields when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            console.log('Temp images from session:', tempImages);
+            
             // Add 4 default image fields
             for (let i = 0; i < 4; i++) {
                 addImageField();
             }
+            
+            // Account for temporary images from previous upload attempt
+            if (tempImages.length > 0) {
+                totalImages = tempImages.length;
+            }
+            
             updateImageCounter();
-
-            // Initialize other components
             initializeForm();
         });
 
@@ -559,8 +632,6 @@
 
                 field.remove();
                 updateImageCounter();
-
-                // Renumber remaining fields
                 renumberImageFields();
             }
         }
@@ -607,12 +678,10 @@
                 };
                 reader.readAsDataURL(file);
 
-                totalImages++;
                 input.classList.remove('border-red-500');
                 input.classList.add('border-green-500');
             } else {
                 preview.classList.add('hidden');
-                if (totalImages > 0) totalImages--;
                 input.classList.remove('border-green-500');
             }
 
@@ -630,14 +699,15 @@
                 }
             });
 
-            totalImages = filledFields;
+            // Add temporary images count
+            const currentTotal = filledFields + tempImages.length;
 
             if (counter) {
-                counter.textContent = `Jami rasmlar: ${totalImages}`;
+                counter.textContent = `Jami rasmlar: ${currentTotal}`;
 
                 // Update counter color based on requirement
                 const counterContainer = counter.parentElement;
-                if (totalImages >= 4) {
+                if (currentTotal >= 4) {
                     counterContainer.className = 'mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm';
                     counter.className = 'font-medium text-green-700';
                 } else {
@@ -645,6 +715,350 @@
                     counter.className = 'font-medium text-red-700';
                 }
             }
+
+            totalImages = currentTotal;
+        }
+
+        // =============== AJAX FUNCTIONS FOR LOCATION HANDLING ===============
+
+        /**
+         * Load mahallas based on selected district - FIXED FOR LOCATIONCONTROLLER
+         */
+        function loadMahallas(districtId, targetSelectId) {
+            console.log('loadMahallas called with districtId:', districtId);
+            
+            const mahallaSelect = document.getElementById(targetSelectId);
+            const streetSelect = document.getElementById('street_id');
+            
+            if (!districtId) {
+                mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
+                streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+                return;
+            }
+
+            // Show loading
+            mahallaSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
+            mahallaSelect.disabled = true;
+
+            // Use query parameter instead of URL parameter - FIXED
+            const url = `/api/mahallas?district_id=${districtId}`;
+            console.log('Fetching from URL:', url);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+                .then(response => {
+                    console.log('Mahallas response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Mahallas data received:', data);
+                    
+                    mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
+                    
+                    // Handle array directly since LocationController returns array
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(mahalla => {
+                            console.log('Adding mahalla:', mahalla);
+                            const option = new Option(mahalla.name, mahalla.id);
+                            mahallaSelect.add(option);
+                        });
+                    } else {
+                        console.log('No mahallas found or data is not array');
+                    }
+
+                    mahallaSelect.disabled = false;
+                    
+                    // Clear streets
+                    streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+                    
+                    // Select previously selected mahalla if exists (for Laravel old() helper)
+                    @if(old('mahalla_id'))
+                        mahallaSelect.value = '{{ old("mahalla_id") }}';
+                        loadStreets('{{ old("mahalla_id") }}', 'street_id');
+                    @endif
+                })
+                .catch(error => {
+                    console.error('Error loading mahallas:', error);
+                    mahallaSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
+                    mahallaSelect.disabled = false;
+                    alert('Mahallalarni yuklashda xato yuz berdi! Console log tekshiring.');
+                });
+        }
+
+        /**
+         * Load streets based on selected mahalla - FIXED FOR LOCATIONCONTROLLER
+         */
+        function loadStreets(mahallaId, targetSelectId) {
+            console.log('loadStreets called with mahallaId:', mahallaId);
+            
+            const streetSelect = document.getElementById(targetSelectId);
+            
+            if (!mahallaId) {
+                streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+                return;
+            }
+
+            // Show loading
+            streetSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
+            streetSelect.disabled = true;
+
+            // Use query parameter instead of URL parameter - FIXED
+            const url = `/api/streets?mahalla_id=${mahallaId}`;
+            console.log('Fetching from URL:', url);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+                .then(response => {
+                    console.log('Streets response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Streets data received:', data);
+                    
+                    streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+                    
+                    // Handle array directly since LocationController returns array
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(street => {
+                            console.log('Adding street:', street);
+                            const option = new Option(street.name, street.id);
+                            streetSelect.add(option);
+                        });
+                    } else {
+                        console.log('No streets found or data is not array');
+                    }
+
+                    streetSelect.disabled = false;
+                    
+                    // Select previously selected street if exists (for Laravel old() helper)
+                    @if(old('street_id'))
+                        streetSelect.value = '{{ old("street_id") }}';
+                    @endif
+                })
+                .catch(error => {
+                    console.error('Error loading streets:', error);
+                    streetSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
+                    streetSelect.disabled = false;
+                    alert('Ko\'chalarni yuklashda xato yuz berdi! Console log tekshiring.');
+                });
+        }
+
+        // =============== MODAL FUNCTIONS WITH AJAX ===============
+
+        function showAddMahallaModal(districtId) {
+            console.log('showAddMahallaModal called with districtId:', districtId);
+            
+            if (!districtId) {
+                alert('Avval tumanni tanlang!');
+                return;
+            }
+
+            document.getElementById('newMahallaDistrictId').value = districtId;
+            document.getElementById('addMahallaModal').classList.remove('hidden');
+            document.getElementById('newMahallaName').focus();
+        }
+
+        function showAddStreetModal(mahallaId) {
+            console.log('showAddStreetModal called with mahallaId:', mahallaId);
+            
+            if (!mahallaId) {
+                alert('Avval mahallani tanlang!');
+                return;
+            }
+
+            document.getElementById('newStreetMahallaId').value = mahallaId;
+            document.getElementById('addStreetModal').classList.remove('hidden');
+            document.getElementById('newStreetName').focus();
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+
+            // Clear form inputs
+            if (modalId === 'addMahallaModal') {
+                document.getElementById('newMahallaName').value = '';
+            } else if (modalId === 'addStreetModal') {
+                document.getElementById('newStreetName').value = '';
+            }
+        }
+
+        /**
+         * Add new mahalla via AJAX - FIXED FOR LOCATIONCONTROLLER
+         */
+        function addNewMahalla() {
+            const districtId = document.getElementById('newMahallaDistrictId').value;
+            const name = document.getElementById('newMahallaName').value.trim();
+
+            console.log('addNewMahalla called with:', { districtId, name });
+
+            if (!name) {
+                alert('Mahalla nomini kiriting!');
+                document.getElementById('newMahallaName').focus();
+                return;
+            }
+
+            // Get CSRF token
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!token) {
+                alert('CSRF token topilmadi! Sahifani yangilab ko\'ring.');
+                return;
+            }
+
+            // Disable button during request
+            const addButton = document.querySelector('#addMahallaModal button[onclick="addNewMahalla()"]');
+            const originalText = addButton.textContent;
+            addButton.disabled = true;
+            addButton.textContent = 'Qo\'shilmoqda...';
+
+            console.log('Sending POST request to /api/mahallas');
+
+            fetch('/api/mahallas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    district_id: districtId
+                })
+            })
+            .then(response => {
+                console.log('Add mahalla response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Add mahalla result:', result);
+                
+                if (result.success && result.mahalla) {
+                    // Add new option to select
+                    const select = document.getElementById('mahalla_id');
+                    const mahalla = result.mahalla;
+                    const option = new Option(mahalla.name, mahalla.id, true, true);
+                    select.add(option);
+
+                    hideModal('addMahallaModal');
+                    alert('Mahalla muvaffaqiyatli qo\'shildi!');
+
+                    // Clear streets since mahalla changed
+                    document.getElementById('street_id').innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+                } else {
+                    alert('Xato: ' + (result.message || 'Noma\'lum xato'));
+                }
+            })
+            .catch(error => {
+                console.error('Error adding mahalla:', error);
+                alert('Xato yuz berdi! Console log tekshiring.');
+            })
+            .finally(() => {
+                // Re-enable button
+                addButton.disabled = false;
+                addButton.textContent = originalText;
+            });
+        }
+
+        /**
+         * Add new street via AJAX - FIXED FOR LOCATIONCONTROLLER
+         */
+        function addNewStreet() {
+            const mahallaId = document.getElementById('newStreetMahallaId').value;
+            const name = document.getElementById('newStreetName').value.trim();
+
+            console.log('addNewStreet called with:', { mahallaId, name });
+
+            if (!name) {
+                alert('Ko\'cha nomini kiriting!');
+                document.getElementById('newStreetName').focus();
+                return;
+            }
+
+            // Get CSRF token
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!token) {
+                alert('CSRF token topilmadi! Sahifani yangilab ko\'ring.');
+                return;
+            }
+
+            // Disable button during request
+            const addButton = document.querySelector('#addStreetModal button[onclick="addNewStreet()"]');
+            const originalText = addButton.textContent;
+            addButton.disabled = true;
+            addButton.textContent = 'Qo\'shilmoqda...';
+
+            console.log('Sending POST request to /api/streets');
+
+            fetch('/api/streets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    mahalla_id: mahallaId
+                })
+            })
+            .then(response => {
+                console.log('Add street response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Add street result:', result);
+                
+                if (result.success && result.street) {
+                    // Add new option to select
+                    const select = document.getElementById('street_id');
+                    const street = result.street;
+                    const option = new Option(street.name, street.id, true, true);
+                    select.add(option);
+
+                    hideModal('addStreetModal');
+                    alert('Ko\'cha muvaffaqiyatli qo\'shildi!');
+                } else {
+                    alert('Xato: ' + (result.message || 'Noma\'lum xato'));
+                }
+            })
+            .catch(error => {
+                console.error('Error adding street:', error);
+                alert('Xato yuz berdi! Console log tekshiring.');
+            })
+            .finally(() => {
+                // Re-enable button
+                addButton.disabled = false;
+                addButton.textContent = originalText;
+            });
         }
 
         // =============== FORM VALIDATION ===============
@@ -666,7 +1080,18 @@
             });
 
             // Validate images - must have at least 4
-            if (totalImages < 4) {
+            const newImagesCount = document.querySelectorAll('.image-field input[type="file"]').length;
+            let validNewImages = 0;
+            
+            document.querySelectorAll('.image-field input[type="file"]').forEach(input => {
+                if (input.files.length > 0) {
+                    validNewImages++;
+                }
+            });
+
+            const totalValidImages = validNewImages + tempImages.length;
+
+            if (totalValidImages < 4) {
                 alert('Kamida 4 ta rasm yuklang!');
                 isValid = false;
 
@@ -714,6 +1139,7 @@
                 }
             }
 
+            console.log('Form validation result:', isValid);
             return isValid;
         }
 
@@ -728,96 +1154,7 @@
             }
         }
 
-        // =============== FORM INITIALIZATION ===============
-
-        function initializeForm() {
-            console.log('Form initializing...');
-
-            // Wait for global scripts to load
-            setTimeout(() => {
-                // Check if global functions are available
-                if (typeof initMap === 'function' && typeof TASHKENT_CONFIG !== 'undefined') {
-                    console.log('Global functions found, initializing map...');
-                    initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
-                } else {
-                    console.error('Global functions not found, retrying...');
-                    // Retry after 1 second
-                    setTimeout(() => {
-                        if (typeof initMap === 'function') {
-                            initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
-                        }
-                    }, 1000);
-                }
-
-                // Load mahallas if district is already selected
-                const districtSelect = document.getElementById('district_id');
-                if (districtSelect && districtSelect.value) {
-                    if (typeof loadMahallas === 'function') {
-                        loadMahallas(districtSelect.value, 'mahalla_id');
-                    }
-                }
-            }, 500);
-
-            // Setup real-time validation
-            setupRealTimeValidation();
-        }
-
-        // =============== REAL-TIME VALIDATION ===============
-
-        function setupRealTimeValidation() {
-            // Required fields validation
-            const requiredFields = document.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                field.addEventListener('blur', function() {
-                    if (this.value.trim()) {
-                        this.classList.remove('border-red-500');
-                        this.classList.add('border-green-500');
-                    } else {
-                        this.classList.add('border-red-500');
-                        this.classList.remove('border-green-500');
-                    }
-                });
-
-                field.addEventListener('input', function() {
-                    if (this.value.trim()) {
-                        this.classList.remove('border-red-500');
-                    }
-                });
-            });
-
-            // Adjacent facilities validation
-            const facilityCheckboxes = document.querySelectorAll('input[name="adjacent_facilities[]"]');
-            const facilityContainer = facilityCheckboxes.length > 0 ? facilityCheckboxes[0].closest('.space-y-2') : null;
-
-            facilityCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const checked = document.querySelectorAll(
-                    'input[name="adjacent_facilities[]"]:checked');
-
-                    if (facilityContainer) {
-                        if (checked.length > 0) {
-                            facilityContainer.classList.remove('border-red-500');
-                            facilityContainer.classList.add('border-green-500');
-                        } else {
-                            facilityContainer.classList.add('border-red-500');
-                            facilityContainer.classList.remove('border-green-500');
-                        }
-                    }
-                });
-            });
-        }
-
         // =============== LOCATION FUNCTIONS ===============
-
-        function testLocationButton() {
-            console.log('Testing location button...');
-            if (typeof getCurrentLocation === 'function') {
-                getCurrentLocation();
-            } else {
-                console.error('getCurrentLocation function not found!');
-                alert('Xarita funksiyalari yuklanmagan. Sahifani yangilab ko\'ring.');
-            }
-        }
 
         function getCurrentLocation() {
             if (navigator.geolocation) {
@@ -869,93 +1206,83 @@
             }
         }
 
-        // =============== MODAL FUNCTIONS ===============
+        // =============== FORM INITIALIZATION ===============
 
-        function showAddMahallaModal(districtId) {
-            if (!districtId) {
-                alert('Avval tumanni tanlang!');
-                return;
-            }
+        function initializeForm() {
+            console.log('Form initializing...');
 
-            document.getElementById('newMahallaDistrictId').value = districtId;
-            document.getElementById('addMahallaModal').classList.remove('hidden');
-            document.getElementById('newMahallaName').focus();
+            // Wait for global scripts to load
+            setTimeout(() => {
+                // Check if global functions are available
+                if (typeof initMap === 'function' && typeof TASHKENT_CONFIG !== 'undefined') {
+                    console.log('Global functions found, initializing map...');
+                    initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
+                } else {
+                    console.error('Global functions not found, retrying...');
+                    // Retry after 1 second
+                    setTimeout(() => {
+                        if (typeof initMap === 'function') {
+                            initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
+                        }
+                    }, 1000);
+                }
+
+                // Load mahallas if district is already selected
+                const districtSelect = document.getElementById('district_id');
+                if (districtSelect && districtSelect.value) {
+                    console.log('District already selected, loading mahallas:', districtSelect.value);
+                    loadMahallas(districtSelect.value, 'mahalla_id');
+                }
+            }, 500);
+
+            // Setup real-time validation
+            setupRealTimeValidation();
+            
+            console.log('Form initialization complete');
         }
 
-        function showAddStreetModal(mahallaId) {
-            if (!mahallaId) {
-                alert('Avval mahallani tanlang!');
-                return;
-            }
+        // =============== REAL-TIME VALIDATION ===============
 
-            document.getElementById('newStreetMahallaId').value = mahallaId;
-            document.getElementById('addStreetModal').classList.remove('hidden');
-            document.getElementById('newStreetName').focus();
-        }
+        function setupRealTimeValidation() {
+            // Required fields validation
+            const requiredFields = document.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                field.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('border-red-500');
+                        this.classList.add('border-green-500');
+                    } else {
+                        this.classList.add('border-red-500');
+                        this.classList.remove('border-green-500');
+                    }
+                });
 
-        function hideModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+                field.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('border-red-500');
+                    }
+                });
+            });
 
-            // Clear form inputs
-            if (modalId === 'addMahallaModal') {
-                document.getElementById('newMahallaName').value = '';
-            } else if (modalId === 'addStreetModal') {
-                document.getElementById('newStreetName').value = '';
-            }
-        }
+            // Adjacent facilities validation
+            const facilityCheckboxes = document.querySelectorAll('input[name="adjacent_facilities[]"]');
+            const facilityContainer = facilityCheckboxes.length > 0 ? facilityCheckboxes[0].closest('.space-y-2') : null;
 
-        function addNewMahalla() {
-            const districtId = document.getElementById('newMahallaDistrictId').value;
-            const name = document.getElementById('newMahallaName').value.trim();
+            facilityCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const checked = document.querySelectorAll('input[name="adjacent_facilities[]"]:checked');
 
-            if (!name) {
-                alert('Mahalla nomini kiriting!');
-                return;
-            }
-
-            // Here you would typically make an AJAX call to save the new mahalla
-            // For now, we'll just add it to the select temporarily
-            const select = document.getElementById('mahalla_id');
-            const option = new Option(name, 'new_' + Date.now(), true, true);
-            select.add(option);
-
-            hideModal('addMahallaModal');
-            alert('Mahalla qo\'shildi!');
-        }
-
-        function addNewStreet() {
-            const mahallaId = document.getElementById('newStreetMahallaId').value;
-            const name = document.getElementById('newStreetName').value.trim();
-
-            if (!name) {
-                alert('Ko\'cha nomini kiriting!');
-                return;
-            }
-
-            // Here you would typically make an AJAX call to save the new street
-            // For now, we'll just add it to the select temporarily
-            const select = document.getElementById('street_id');
-            const option = new Option(name, 'new_' + Date.now(), true, true);
-            select.add(option);
-
-            hideModal('addStreetModal');
-            alert('Ko\'cha qo\'shildi!');
-        }
-
-        // =============== DEBUG FUNCTIONS ===============
-
-        function debugCreateForm() {
-            console.log('=== Create Form Debug ===');
-            console.log('Map available:', typeof map !== 'undefined' ? 'Yes' : 'No');
-            console.log('initMap function:', typeof initMap !== 'undefined' ? 'Available' : 'Not available');
-            console.log('getCurrentLocation function:', typeof getCurrentLocation !== 'undefined' ? 'Available' :
-                'Not available');
-            console.log('TASHKENT_CONFIG:', typeof TASHKENT_CONFIG !== 'undefined' ? TASHKENT_CONFIG : 'Not available');
-            console.log('Map container exists:', document.getElementById('map') ? 'Yes' : 'No');
-            console.log('Total image fields:', imageFieldIndex);
-            console.log('Total images uploaded:', totalImages);
-            console.log('loadMahallas function:', typeof loadMahallas !== 'undefined' ? 'Available' : 'Not available');
-            console.log('========================');
+                    if (facilityContainer) {
+                        if (checked.length > 0) {
+                            facilityContainer.classList.remove('border-red-500');
+                            facilityContainer.classList.add('border-green-500');
+                        } else {
+                            facilityContainer.classList.add('border-red-500');
+                            facilityContainer.classList.remove('border-green-500');
+                        }
+                    }
+                });
+            });
         }
 
         // =============== KEYBOARD SHORTCUTS ===============
@@ -981,8 +1308,6 @@
 
         // =============== EXPORT FUNCTIONS FOR TESTING ===============
 
-        window.testLocationButton = testLocationButton;
-        window.debugCreateForm = debugCreateForm;
         window.addImageField = addImageField;
         window.removeImageField = removeImageField;
         window.handleImageChange = handleImageChange;
@@ -994,10 +1319,47 @@
         window.addNewMahalla = addNewMahalla;
         window.addNewStreet = addNewStreet;
         window.getCurrentLocation = getCurrentLocation;
+        window.loadMahallas = loadMahallas;
+        window.loadStreets = loadStreets;
 
-        // Auto-debug after page loads (optional)
-        setTimeout(() => {
-            debugCreateForm();
-        }, 2000);
+        // =============== DEBUG HELPER ===============
+
+        function debugForm() {
+            console.log('=== Form Debug Info ===');
+            console.log('CSRF Token:', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
+            console.log('Districts available:', document.querySelectorAll('#district_id option').length);
+            console.log('Current district:', document.getElementById('district_id').value);
+            console.log('Current mahalla:', document.getElementById('mahalla_id').value);
+            console.log('Current street:', document.getElementById('street_id').value);
+            console.log('Total images:', totalImages);
+            console.log('Temp images:', tempImages);
+            
+            // Test API endpoints
+            console.log('Testing API endpoints...');
+            
+            // Test mahallas endpoint
+            fetch('/api/mahallas?district_id=1', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Mahallas test response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Mahallas test data:', data);
+            })
+            .catch(error => {
+                console.error('Mahallas test error:', error);
+            });
+            
+            console.log('======================');
+        }
+
+        // Make debug function available globally
+        window.debugForm = debugForm;
     </script>
 @endsection

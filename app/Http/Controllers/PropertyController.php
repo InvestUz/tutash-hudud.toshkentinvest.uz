@@ -69,7 +69,7 @@ class PropertyController extends Controller
             'building_cadastr_number' => 'required|string|max:50',
             'object_name' => 'required|string|max:255',
             'activity_type' => 'required|string|max:255',
-            'tenant_activity_type' => 'required|string|max:255',
+            'tenant_activity_type' => 'nullable',
             'has_tenant' => 'boolean',
             'tenant_name' => 'nullable|string|max:255',
             'tenant_stir_pinfl' => 'nullable|string|max:20',
@@ -226,4 +226,6 @@ class PropertyController extends Controller
 
         return redirect()->route('properties.index')->with('success', 'Mulk o\'chirildi!');
     }
+
+    
 }

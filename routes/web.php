@@ -22,12 +22,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// API Routes for AJAX
+// API Routes for AJAX - FIXED ROUTES
 Route::middleware(['auth'])->prefix('api')->group(function () {
-    Route::get('/mahallas', [LocationController::class, 'getMahallas']);
-    Route::get('/streets', [LocationController::class, 'getStreets']);
-    Route::post('/mahallas', [LocationController::class, 'storeMahalla']);
-    Route::post('/streets', [LocationController::class, 'storeStreet']);
+    // GET routes with query parameters (not URL parameters)
+    Route::get('/mahallas', [LocationController::class, 'getMahallas'])
+        ->name('api.mahallas.index');
+    
+    Route::get('/streets', [LocationController::class, 'getStreets'])
+        ->name('api.streets.index');
+    
+    // POST routes for creating new records
+    Route::post('/mahallas', [LocationController::class, 'storeMahalla'])
+        ->name('api.mahallas.store');
+    
+    Route::post('/streets', [LocationController::class, 'storeStreet'])
+        ->name('api.streets.store');
 });
 
 require __DIR__.'/auth.php';
