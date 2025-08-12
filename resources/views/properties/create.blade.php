@@ -247,95 +247,199 @@
         <!-- Tutash hudud ma'lumotlari -->
         <div class="mb-8">
             <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-
- <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                            </svg>
-                            Rasmlar ({{ count($property->images) }} ta)
-                        </h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            @foreach($property->images as $image)
-                                <div class="aspect-w-1 aspect-h-1">
-                                    <img src="{{ Storage::url($image) }}"
-                                         alt="Mulk rasmi"
-                                         class="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
-                                         onclick="openImageModal('{{ Storage::url($image) }}')">
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Act File -->
-                    @if($property->act_file)
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Akt fayli
-                            </h3>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <a href="{{ Storage::url($property->act_file) }}"
-                                   target="_blank"
-                                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                    Faylni yuklab olish
-                                </a>
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Meta information -->
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Qo'shimcha ma'lumotlar
-                        </h3>
-                        <div class="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Yaratilgan sana:</span>
-                                <span class="text-gray-900 font-medium">{{ $property->created_at->format('d.m.Y H:i') }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Oxirgi yangilanish:</span>
-                                <span class="text-gray-900">{{ $property->updated_at->format('d.m.Y H:i') }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Yaratuvchi:</span>
-                                <span class="text-gray-900">{{ $property->creator->name }}</span>
-                            </div>
-                            @if($property->creator->district)
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Yaratuvchi tumani:</span>
-                                    <span class="text-gray-900">{{ $property->creator->district->name }}</span>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
+                <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H7m2 0v-6m10 6v-6M7 7h10M7 11h10"></path>
+                </svg>
+                Tutash hudud ma'lumotlari
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tutash hududdagi faoliyat turi <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="adjacent_activity_type" value="{{ old('adjacent_activity_type') }}" required
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Masalan: Turarjoy, Savdo, Ishlab chiqarish">
+                    @error('adjacent_activity_type')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tutash hududdagi qurilmalar <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                        @php
+                            $facilities = [
+                                'kapital_qurilma' => 'Kapital qurilma',
+                                'mavjud_emas' => 'Mavjud emas',
+                                'yengil_qurilma' => 'Yengil qurilma',
+                                'bostirma' => 'Bostirma',
+                                'beton_maydoncha' => 'Beton maydoncha',
+                                'elektr_quvvatlash' => 'Elektr quvvatlash',
+                                'avtoturargoh' => 'Avtoturargoh',
+                                'boshqalar' => 'Boshqalar'
+                            ];
+                        @endphp
+                        @foreach($facilities as $value => $label)
+                            <label class="flex items-center">
+                                <input type="checkbox" name="adjacent_facilities[]" value="{{ $value }}"
+                                       {{ in_array($value, old('adjacent_facilities', [])) ? 'checked' : '' }}
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('adjacent_facilities')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        <!-- Geolokatsiya -->
+        <div class="mb-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+                Geolokatsiya
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Kenglik (Latitude)</label>
+                    <input type="number" step="any" name="latitude" id="latitude" value="{{ old('latitude') }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="41.2995">
+                    @error('latitude')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Uzunlik (Longitude)</label>
+                    <input type="number" step="any" name="longitude" id="longitude" value="{{ old('longitude') }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="69.2401">
+                    @error('longitude')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="flex items-end">
+                    <button type="button" onclick="getCurrentLocation()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full">
+                        Joylashuvni aniqlash
+                    </button>
+                </div>
+            </div>
+            <div id="map" style="height: 400px;" class="border rounded-lg"></div>
+            <p class="text-sm text-gray-500 mt-2">Xaritada bosing yoki "Joylashuvni aniqlash" tugmasini bosing</p>
+        </div>
+
+        <!-- Fayllar -->
+        <div class="mb-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                </svg>
+                Fayllar
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Rasmlar (kamida 4 ta) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="file" name="images[]" id="images" multiple accept="image/*" required
+                           onchange="previewImages(this)"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-sm text-gray-500 mt-1">JPEG, PNG, JPG formatida, har biri maksimal 2MB</p>
+                    <div id="imagePreview" class="grid grid-cols-4 gap-2 mt-2"></div>
+                    @error('images')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                    @error('images.*')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Akt fayli (ixtiyoriy)
+                    </label>
+                    <input type="file" name="act_file" accept=".pdf,.doc,.docx"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-sm text-gray-500 mt-1">PDF, DOC, DOCX formatida, maksimal 10MB</p>
+                    @error('act_file')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit buttons -->
+        <div class="flex justify-end space-x-4 border-t pt-6">
+            <a href="{{ route('properties.index') }}"
+               class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+                Bekor qilish
+            </a>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                Saqlash
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Add Mahalla Modal -->
+<div id="addMahallaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-medium">Yangi mahalla qo'shish</h3>
+            </div>
+            <div class="px-6 py-4">
+                <input type="hidden" id="newMahallaDistrictId">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mahalla nomi</label>
+                <input type="text" id="newMahallaName"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                       placeholder="Mahalla nomini kiriting">
+            </div>
+            <div class="px-6 py-4 border-t flex justify-end space-x-2">
+                <button onclick="hideModal('addMahallaModal')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
+                    Bekor qilish
+                </button>
+                <button onclick="addNewMahalla()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    Qo'shish
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Image Modal -->
-<div id="imageModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+<!-- Add Street Modal -->
+<div id="addStreetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full">
-            <div class="px-6 py-4 border-b flex justify-between items-center">
-                <h3 class="text-lg font-medium">Rasm</h3>
-                <button onclick="closeImageModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="px-6 py-4 border-b">
+                <h3 class="text-lg font-medium">Yangi ko'cha qo'shish</h3>
             </div>
-            <div class="p-6">
-                <img id="modalImage" src="" alt="Rasm" class="w-full h-auto max-h-96 object-contain mx-auto">
+            <div class="px-6 py-4">
+                <input type="hidden" id="newStreetMahallaId">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ko'cha nomi</label>
+                <input type="text" id="newStreetName"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                       placeholder="Ko'cha nomini kiriting">
+            </div>
+            <div class="px-6 py-4 border-t flex justify-end space-x-2">
+                <button onclick="hideModal('addStreetModal')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
+                    Bekor qilish
+                </button>
+                <button onclick="addNewStreet()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    Qo'shish
+                </button>
             </div>
         </div>
     </div>
@@ -344,45 +448,290 @@
 
 @section('scripts')
 <script>
-    // Initialize map for property location
-    @if($property->latitude && $property->longitude)
-        document.addEventListener('DOMContentLoaded', function() {
-            const map = L.map('propertyMap').setView([{{ $property->latitude }}, {{ $property->longitude }}], 15);
+    // =============== CREATE FORM SPECIFIC FUNCTIONS ===============
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+    function toggleTenantFields(checkbox) {
+        const tenantFields = document.getElementById('tenantFields');
+        if (checkbox.checked) {
+            tenantFields.classList.remove('hidden');
+        } else {
+            tenantFields.classList.add('hidden');
+        }
+    }
 
-            L.marker([{{ $property->latitude }}, {{ $property->longitude }}])
-                .addTo(map)
-                .bindPopup('{{ $property->object_name }}')
-                .openPopup();
+    // Initialize map when page loads - Create form specific
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Create form: Initializing...');
+
+        // Wait for global scripts to load
+        setTimeout(() => {
+            // Check if global functions are available
+            if (typeof initMap === 'function' && typeof TASHKENT_CONFIG !== 'undefined') {
+                console.log('Global functions found, initializing map...');
+                initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
+            } else {
+                console.error('Global functions not found, retrying...');
+                // Retry after 1 second
+                setTimeout(() => {
+                    if (typeof initMap === 'function') {
+                        initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
+                    }
+                }, 1000);
+            }
+
+            // Load mahallas if district is already selected
+            const districtSelect = document.getElementById('district_id');
+            if (districtSelect && districtSelect.value) {
+                loadMahallas(districtSelect.value, 'mahalla_id', {{ old('mahalla_id', 'null') }});
+            }
+        }, 500);
+    });
+
+    // Custom validation for create form
+    function validateForm() {
+        console.log('Validating create form...');
+
+        const requiredFields = document.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
         });
-    @endif
 
-    // Image modal functions
-    function openImageModal(imageSrc) {
-        document.getElementById('modalImage').src = imageSrc;
-        document.getElementById('imageModal').classList.remove('hidden');
+        // Check images - must have at least 4
+        const images = document.getElementById('images');
+        if (images && images.files.length < 4) {
+            alert('Kamida 4 ta rasm yuklang!');
+            images.classList.add('border-red-500');
+            isValid = false;
+        } else if (images) {
+            images.classList.remove('border-red-500');
+        }
+
+        // Check adjacent facilities - at least one must be selected
+        const adjacentFacilities = document.querySelectorAll('input[name="adjacent_facilities[]"]:checked');
+        if (adjacentFacilities.length === 0) {
+            alert('Tutash hududdagi qurilmalardan kamida bittasini tanlang!');
+            isValid = false;
+        }
+
+        // Check coordinates if provided
+        const latInput = document.getElementById('latitude');
+        const lngInput = document.getElementById('longitude');
+
+        if (latInput && lngInput && (latInput.value || lngInput.value)) {
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                alert('Koordinatalar noto\'g\'ri formatda kiritilgan!');
+                isValid = false;
+            } else if (typeof isWithinTashkent === 'function' && !isWithinTashkent(lat, lng)) {
+                alert('Koordinatalar Toshkent shahri chegaralarida bo\'lishi kerak!');
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            // Scroll to first error
+            const firstError = document.querySelector('.border-red-500');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        return isValid;
     }
 
-    function closeImageModal() {
-        document.getElementById('imageModal').classList.add('hidden');
+    // Enhanced image preview for create form
+    function previewImages(input) {
+        const preview = document.getElementById('imagePreview');
+        if (!preview) return;
+
+        preview.innerHTML = '';
+
+        if (input.files && input.files.length > 0) {
+            // Show file count status
+            let statusClass = 'bg-red-50 text-red-700 border-red-200';
+            let statusMessage = `${input.files.length} ta rasm tanlandi. Kamida 4 ta kerak.`;
+
+            if (input.files.length >= 4) {
+                statusClass = 'bg-green-50 text-green-700 border-green-200';
+                statusMessage = `${input.files.length} ta rasm tanlandi. ✓`;
+            }
+
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `col-span-4 text-sm text-center p-2 rounded border ${statusClass}`;
+            statusDiv.textContent = statusMessage;
+            preview.appendChild(statusDiv);
+
+            // Show image previews (max 12 to prevent performance issues)
+            Array.from(input.files).slice(0, 12).forEach((file, index) => {
+                // Check file size
+                if (file.size > 2048 * 1024) { // 2MB
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'col-span-1 text-red-500 text-xs text-center p-2 bg-red-50 rounded border border-red-200';
+                    errorDiv.innerHTML = `
+                        <div class="mb-1">❌</div>
+                        <div class="truncate">${file.name.length > 10 ? file.name.substring(0, 10) + '...' : file.name}</div>
+                        <div>Juda katta!</div>
+                        <div>(${(file.size / 1024 / 1024).toFixed(1)}MB)</div>
+                    `;
+                    preview.appendChild(errorDiv);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative group';
+                    div.innerHTML = `
+                        <img src="${e.target.result}"
+                             class="w-full h-20 object-cover rounded border group-hover:opacity-75 transition-opacity"
+                             alt="Preview ${index + 1}">
+                        <button type="button"
+                                onclick="removeImageFromPreview(${index})"
+                                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="O'chirish">×</button>
+                        <div class="text-xs text-center mt-1 text-gray-500 truncate" title="${file.name}">
+                            ${file.name.length > 8 ? file.name.substring(0, 8) + '...' : file.name}
+                        </div>
+                        <div class="text-xs text-center text-gray-400">
+                            ${(file.size / 1024).toFixed(0)}KB
+                        </div>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Show message if more than 12 files
+            if (input.files.length > 12) {
+                const moreDiv = document.createElement('div');
+                moreDiv.className = 'col-span-4 text-sm text-center p-2 bg-blue-50 text-blue-700 rounded border border-blue-200';
+                moreDiv.textContent = `... va yana ${input.files.length - 12} ta fayl`;
+                preview.appendChild(moreDiv);
+            }
+        }
     }
 
-    // Close modal on background click
-    document.getElementById('imageModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeImageModal();
+    // Remove image from preview
+    function removeImageFromPreview(index) {
+        const input = document.getElementById('images');
+        if (!input) return;
+
+        const dt = new DataTransfer();
+
+        Array.from(input.files).forEach((file, i) => {
+            if (i !== index) {
+                dt.items.add(file);
+            }
+        });
+
+        input.files = dt.files;
+        previewImages(input);
+
+        // Update validation state
+        if (input.files.length < 4) {
+            input.classList.add('border-red-500');
+        } else {
+            input.classList.remove('border-red-500');
+            input.classList.add('border-green-500');
+        }
+    }
+
+    // Real-time validation for create form
+    document.addEventListener('DOMContentLoaded', function() {
+        // Required fields validation
+        const requiredFields = document.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            field.addEventListener('blur', function() {
+                if (this.value.trim()) {
+                    this.classList.remove('border-red-500');
+                    this.classList.add('border-green-500');
+                } else {
+                    this.classList.add('border-red-500');
+                    this.classList.remove('border-green-500');
+                }
+            });
+
+            field.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.classList.remove('border-red-500');
+                }
+            });
+        });
+
+        // Adjacent facilities validation
+        const facilityCheckboxes = document.querySelectorAll('input[name="adjacent_facilities[]"]');
+        const facilityContainer = facilityCheckboxes.length > 0 ? facilityCheckboxes[0].closest('.space-y-2') : null;
+
+        facilityCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const checked = document.querySelectorAll('input[name="adjacent_facilities[]"]:checked');
+
+                if (facilityContainer) {
+                    if (checked.length > 0) {
+                        facilityContainer.classList.remove('border-red-500');
+                        facilityContainer.classList.add('border-green-500');
+                    } else {
+                        facilityContainer.classList.add('border-red-500');
+                        facilityContainer.classList.remove('border-green-500');
+                    }
+                }
+            });
+        });
+
+        // Images validation
+        const imagesInput = document.getElementById('images');
+        if (imagesInput) {
+            imagesInput.addEventListener('change', function() {
+                if (this.files.length >= 4) {
+                    this.classList.remove('border-red-500');
+                    this.classList.add('border-green-500');
+                } else {
+                    this.classList.add('border-red-500');
+                    this.classList.remove('border-green-500');
+                }
+            });
         }
     });
 
-    // Close modal on ESC key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeImageModal();
+    // Test current location button
+    function testLocationButton() {
+        console.log('Testing location button...');
+        if (typeof getCurrentLocation === 'function') {
+            getCurrentLocation();
+        } else {
+            console.error('getCurrentLocation function not found!');
+            alert('Xarita funksiyalari yuklanmagan. Sahifani yangilab ko\'ring.');
         }
-    });
+    }
+
+    // Add manual test functions for debugging
+    window.testLocationButton = testLocationButton;
+
+    // Debug current state
+    function debugCreateForm() {
+        console.log('=== Create Form Debug ===');
+        console.log('Map available:', typeof map !== 'undefined' ? 'Yes' : 'No');
+        console.log('initMap function:', typeof initMap !== 'undefined' ? 'Available' : 'Not available');
+        console.log('getCurrentLocation function:', typeof getCurrentLocation !== 'undefined' ? 'Available' : 'Not available');
+        console.log('TASHKENT_CONFIG:', typeof TASHKENT_CONFIG !== 'undefined' ? TASHKENT_CONFIG : 'Not available');
+        console.log('Map container exists:', document.getElementById('map') ? 'Yes' : 'No');
+        console.log('========================');
+    }
+
+    window.debugCreateForm = debugCreateForm;
+
+    // Auto-debug after page loads
+    setTimeout(() => {
+        debugCreateForm();
+    }, 2000);
 </script>
 @endsection
-
