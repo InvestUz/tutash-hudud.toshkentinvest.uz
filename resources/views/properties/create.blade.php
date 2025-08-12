@@ -92,7 +92,7 @@
                         </label>
                         <input type="text" name="activity_type" value="{{ old('activity_type') }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish, Elektr quvvatlash stantsiyasi">
+                            placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish">
                         @error('activity_type')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -161,7 +161,7 @@
                         </label>
                         <input type="text" name="activity_type" value="{{ old('activity_type') }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish, Elektr quvvatlash stantsiyasi">
+                            placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish">
                         @error('activity_type')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -210,7 +210,7 @@
                             <select name="mahalla_id" id="mahalla_id" required
                                 onchange="loadStreets(this.value, 'street_id')"
                                 class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Mahallani tanlang</option>
+                                <option value="">Mahallani tanlang yoki yarating</option>
                             </select>
                             <button type="button"
                                 onclick="showAddMahallaModal(document.getElementById('district_id').value)"
@@ -230,7 +230,7 @@
                         <div class="flex">
                             <select name="street_id" id="street_id" required
                                 class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Ko'chani tanlang</option>
+                                <option value="">Ko'chani tanlang yoki yarating</option>
                             </select>
                             <button type="button"
                                 onclick="showAddStreetModal(document.getElementById('mahalla_id').value)"
@@ -287,7 +287,20 @@
                         <input type="text" name="adjacent_activity_type" value="{{ old('adjacent_activity_type') }}"
                             required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Masalan: Turarjoy, Savdo, Ishlab chiqarish">
+                            placeholder="Masalan: Umumiy ovqatlanish, Savdo, Xizmat ko'rsatish, Elektr quvvatlash stantsiyasi">
+                        @error('adjacent_activity_type')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+   <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Tutash hudud maydoni <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="adjacent_activity_type" value="{{ old('adjacent_activity_type') }}"
+                            required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="kv.m">
                         @error('adjacent_activity_type')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
