@@ -188,17 +188,17 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Tuman <span class="text-red-500">*</span>
                         </label>
-                        <select name="district_id" id="district_id" required
-                            onchange="loadMahallas(this.value, 'mahalla_id')"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('district_id') border-red-500 @enderror">
-                            <option value="">Tumanni tanlang</option>
-                            @foreach ($districts as $district)
-                                <option value="{{ $district->id }}"
-                                    {{ old('district_id') == $district->id ? 'selected' : '' }}>
-                                    {{ $district->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                      <select id="district_id" name="district_id" 
+                            onchange="onDistrictChange(this)" 
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" 
+                            required>
+                        <option value="">Tumanni tanlang</option>
+                        @foreach($districts as $district)
+                            <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>
+                                {{ $district->name }}
+                            </option>
+                        @endforeach
+                    </select>
                         @error('district_id')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -209,11 +209,12 @@
                             Mahalla <span class="text-red-500">*</span>
                         </label>
                         <div class="flex">
-                            <select name="mahalla_id" id="mahalla_id" required
-                                onchange="loadStreets(this.value, 'street_id')"
-                                class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('mahalla_id') border-red-500 @enderror">
-                                <option value="">Mahallani tanlang yoki yarating</option>
-                            </select>
+                           <select id="mahalla_id" name="mahalla_id" 
+                                onchange="onMahallaChange(this)" 
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" 
+                                required>
+                            <option value="">Mahallani tanlang yoki yarating</option>
+                        </select>
                             <button type="button"
                                 onclick="showAddMahallaModal(document.getElementById('district_id').value)"
                                 class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-r-lg">
@@ -230,8 +231,10 @@
                             Ko'cha <span class="text-red-500">*</span>
                         </label>
                         <div class="flex">
-                            <select name="street_id" id="street_id" required
-                                class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('street_id') border-red-500 @enderror">
+                            <select id="street_id" name="street_id" 
+                                    onchange="onStreetChange(this)" 
+                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    required>
                                 <option value="">Ko'chani tanlang yoki yarating</option>
                             </select>
                             <button type="button"
@@ -719,32 +722,76 @@
             totalImages = currentTotal;
         }
 
-        // =============== AJAX FUNCTIONS FOR LOCATION HANDLING ===============
+        // =============== AJAX FUNCTIONS FOR INDEPENDENT LOCATION HANDLING ===============
 
         /**
-         * Load mahallas based on selected district - FIXED
+         * Tuman o'zgarganda - MAHALLA VA KO'CHA ALOHIDA YUKLANADI
          */
-        function loadMahallas(districtId, targetSelectId) {
-            console.log('loadMahallas called with districtId:', districtId);
+        function onDistrictChange(selectElement) {
+            // Element yoki value qabul qilishi mumkin
+            const districtId = typeof selectElement === 'object' ? selectElement.value : selectElement;
             
-            const mahallaSelect = document.getElementById(targetSelectId);
-            const streetSelect = document.getElementById('street_id');
+            console.log('District changed to:', districtId);
+            console.log('District ID type:', typeof districtId);
             
-            if (!districtId) {
-                mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
-                streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+            // FIXED: District ID ni string dan number ga o'tkazish va validation
+            const numericDistrictId = parseInt(districtId);
+            
+            if (!districtId || districtId === '' || districtId === 'null' || districtId === 'undefined' || isNaN(numericDistrictId) || numericDistrictId < 1 || numericDistrictId > 12) {
+                console.log('District ID noto\'g\'ri:', districtId, 'Reset qilish...');
+                resetMahallaSelect();
+                resetStreetSelect();
                 return;
             }
 
-            // Show loading
+            console.log('Valid district ID:', numericDistrictId, 'Mahalla va ko\'chalarni yuklash boshlandi...');
+            // Mahalla va ko'chani parallel ravishda yuklash (bir-biriga bog'liq emas)
+            loadMahallas(numericDistrictId);
+            loadStreets(numericDistrictId);
+        }
+
+        /**
+         * Mahalla o'zgarganda - FAQAT LOG QILISH (ko'chani reset qilmaslik)
+         */
+        function onMahallaChange(selectElement) {
+            const mahallaId = typeof selectElement === 'object' ? selectElement.value : selectElement;
+            console.log('Mahalla changed to:', mahallaId, '(Ko\'cha o\'zgartirilmaydi)');
+            // Hech narsa qilmaymiz - ko'cha mustaqil
+        }
+
+        /**
+         * Ko'cha o'zgarganda - FAQAT LOG QILISH (mahallani reset qilmaslik)
+         */
+        function onStreetChange(selectElement) {
+            const streetId = typeof selectElement === 'object' ? selectElement.value : selectElement;
+            console.log('Street changed to:', streetId, '(Mahalla o\'zgartirilmaydi)');
+            // Hech narsa qilmaymiz - mahalla mustaqil
+        }
+
+        /**
+         * Mahallalarni yuklash - FAQAT TUMAN ASOSIDA
+         */
+        function loadMahallas(districtId) {
+            console.log('Loading mahallas for district:', districtId);
+            
+            const mahallaSelect = document.getElementById('mahalla_id');
+            
+            // FIXED: District ID validation (1-12 orasida bo'lishi kerak)
+            const numericDistrictId = parseInt(districtId);
+            if (!districtId || districtId === '' || districtId === 'null' || isNaN(numericDistrictId) || numericDistrictId < 1 || numericDistrictId > 12) {
+                console.log('Invalid district ID for mahallas:', districtId);
+                resetMahallaSelect();
+                return;
+            }
+
+            // Loading holatini ko'rsatish
             mahallaSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
             mahallaSelect.disabled = true;
 
-            // Load mahallas
-            const mahallaUrl = `/api/mahallas?district_id=${districtId}`;
-            console.log('Fetching mahallas from URL:', mahallaUrl);
+            const url = `/api/mahallas?district_id=${numericDistrictId}`;
+            console.log('Fetching mahallas from:', url);
 
-            fetch(mahallaUrl, {
+            fetch(url, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -756,60 +803,75 @@
             .then(response => {
                 console.log('Mahallas response status:', response.status);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.text().then(text => {
+                        console.error('Mahallas error response:', text);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Mahallas data received:', data);
                 
+                // Selectni tozalash va boshlang'ich optionni qo'shish
                 mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
                 
-                if (Array.isArray(data) && data.length > 0) {
-                    data.forEach(mahalla => {
-                        console.log('Adding mahalla:', mahalla);
-                        const option = new Option(mahalla.name, mahalla.id);
-                        mahallaSelect.add(option);
-                    });
+                // Mahallalarni qo'shish
+                if (Array.isArray(data)) {
+                    if (data.length > 0) {
+                        data.forEach(mahalla => {
+                            const option = new Option(mahalla.name, mahalla.id);
+                            mahallaSelect.add(option);
+                        });
+                        console.log(`Successfully loaded ${data.length} mahallas`);
+                    } else {
+                        console.log('No mahallas found for district:', numericDistrictId);
+                    }
+                } else {
+                    console.error('Mahallas data is not an array:', data);
                 }
 
                 mahallaSelect.disabled = false;
                 
-                // Select previously selected mahalla if exists
+                // Eski qiymatni tiklash (agar mavjud bo'lsa)
                 @if(old('mahalla_id'))
-                    mahallaSelect.value = '{{ old("mahalla_id") }}';
+                    const oldMahallaId = '{{ old("mahalla_id") }}';
+                    if (oldMahallaId) {
+                        mahallaSelect.value = oldMahallaId;
+                        console.log('Restored old mahalla value:', oldMahallaId);
+                    }
                 @endif
             })
             .catch(error => {
                 console.error('Error loading mahallas:', error);
                 mahallaSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
                 mahallaSelect.disabled = false;
-                alert('Mahallalarni yuklashda xato yuz berdi!');
+                alert('Mahallalarni yuklashda xato yuz berdi: ' + error.message);
             });
-
-            // Load streets for the district
-            loadStreets(districtId, 'street_id');
         }
 
         /**
-         * Load streets based on selected district - FIXED
+         * Ko'chalarni yuklash - FAQAT TUMAN ASOSIDA (mahallaga bog'liq emas)
          */
-        function loadStreets(districtId, targetSelectId) {
-            console.log('loadStreets called with districtId:', districtId);
+        function loadStreets(districtId) {
+            console.log('Loading streets for district:', districtId);
             
-            const streetSelect = document.getElementById(targetSelectId);
+            const streetSelect = document.getElementById('street_id');
             
-            if (!districtId) {
-                streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+            // FIXED: District ID validation (1-12 orasida bo'lishi kerak)
+            const numericDistrictId = parseInt(districtId);
+            if (!districtId || districtId === '' || districtId === 'null' || isNaN(numericDistrictId) || numericDistrictId < 1 || numericDistrictId > 12) {
+                console.log('Invalid district ID for streets:', districtId);
+                resetStreetSelect();
                 return;
             }
 
-            // Show loading
+            // Loading holatini ko'rsatish
             streetSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
             streetSelect.disabled = true;
 
-            // FIXED: Add error handling and debugging
-            const url = `/api/streets?district_id=${districtId}`;
+            // FIXED: District ID ni to'g'ri yuborish
+            const url = `/api/streets?district_id=${numericDistrictId}`;
             console.log('Fetching streets from URL:', url);
 
             fetch(url, {
@@ -823,40 +885,60 @@
             })
             .then(response => {
                 console.log('Streets response status:', response.status);
+                console.log('Streets response URL:', response.url);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.text().then(text => {
+                        console.error('Streets response error body:', text);
+                        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Streets data received:', data);
                 console.log('Streets data type:', typeof data);
-                console.log('Streets data length:', Array.isArray(data) ? data.length : 'Not an array');
+                console.log('Is array:', Array.isArray(data));
                 
+                // Selectni tozalash va boshlang'ich optionni qo'shish
                 streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
                 
-                if (Array.isArray(data) && data.length > 0) {
-                    data.forEach(street => {
-                        console.log('Adding street:', street);
-                        const option = new Option(street.name, street.id);
-                        streetSelect.add(option);
-                    });
-                    console.log(`Successfully added ${data.length} streets`);
+                // Ko'chalarni qo'shish
+                if (Array.isArray(data)) {
+                    if (data.length > 0) {
+                        data.forEach(street => {
+                            console.log('Adding street:', street);
+                            const option = new Option(street.name, street.id);
+                            streetSelect.add(option);
+                        });
+                        console.log(`Successfully loaded ${data.length} streets`);
+                    } else {
+                        console.log('No streets found for district:', numericDistrictId);
+                        // Debug uchun
+                        const debugOption = new Option(`Ushbu tumanda ko'chalar topilmadi (ID: ${numericDistrictId})`, '');
+                        debugOption.disabled = true;
+                        debugOption.style.color = '#999';
+                        streetSelect.add(debugOption);
+                    }
                 } else {
-                    console.warn('No streets found for district:', districtId);
-                    // Add a debug option to check if district exists
-                    const debugOption = new Option(`Debug: Ushbu tumanda ko'chalar topilmadi (ID: ${districtId})`, '');
-                    debugOption.disabled = true;
-                    debugOption.style.color = '#999';
-                    streetSelect.add(debugOption);
+                    console.error('Streets data is not an array:', data);
+                    if (data && data.message) {
+                        const errorOption = new Option(`Xato: ${data.message}`, '');
+                        errorOption.disabled = true;
+                        errorOption.style.color = '#f00';
+                        streetSelect.add(errorOption);
+                    }
                 }
 
                 streetSelect.disabled = false;
                 
-                // Select previously selected street if exists
+                // Eski qiymatni tiklash (agar mavjud bo'lsa)
                 @if(old('street_id'))
-                    streetSelect.value = '{{ old("street_id") }}';
+                    const oldStreetId = '{{ old("street_id") }}';
+                    if (oldStreetId) {
+                        streetSelect.value = oldStreetId;
+                        console.log('Restored old street value:', oldStreetId);
+                    }
                 @endif
             })
             .catch(error => {
@@ -864,14 +946,43 @@
                 streetSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
                 streetSelect.disabled = false;
                 
-                // Enhanced error message
-                alert(`Ko'chalarni yuklashda xato yuz berdi!\nDistrict ID: ${districtId}\nXato: ${error.message}`);
+                // Production da foydalanuvchiga oddiy xabar ko'rsatish
+                if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+                    alert('Ko\'chalarni yuklashda xato yuz berdi. Sahifani yangilab ko\'ring.');
+                } else {
+                    alert('Ko\'chalarni yuklashda xato yuz berdi: ' + error.message);
+                }
             });
+        }
+
+        /**
+         * Mahalla selectini boshlang'ich holatga qaytarish
+         */
+        function resetMahallaSelect() {
+            const mahallaSelect = document.getElementById('mahalla_id');
+            if (mahallaSelect) {
+                mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
+                mahallaSelect.disabled = false;
+            }
+        }
+
+        /**
+         * Ko'cha selectini boshlang'ich holatga qaytarish
+         */
+        function resetStreetSelect() {
+            const streetSelect = document.getElementById('street_id');
+            if (streetSelect) {
+                streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+                streetSelect.disabled = false;
+            }
         }
 
         // =============== MODAL FUNCTIONS WITH AJAX ===============
 
-        function showAddMahallaModal(districtId) {
+        function showAddMahallaModal() {
+            const districtSelect = document.getElementById('district_id');
+            const districtId = districtSelect ? districtSelect.value : null;
+            
             console.log('showAddMahallaModal called with districtId:', districtId);
             
             if (!districtId) {
@@ -884,36 +995,40 @@
             document.getElementById('newMahallaName').focus();
         }
 
-        function showAddStreetModal(districtId) {
+        function showAddStreetModal() {
+            const districtSelect = document.getElementById('district_id');
+            const districtId = districtSelect ? districtSelect.value : null;
+            
             console.log('showAddStreetModal called with districtId:', districtId);
             
-            // Get district_id from the district dropdown instead of mahalla
-            const districtSelect = document.getElementById('district_id');
-            const currentDistrictId = districtSelect ? districtSelect.value : districtId;
-            
-            if (!currentDistrictId) {
+            if (!districtId) {
                 alert('Avval tumanni tanlang!');
                 return;
             }
 
-            document.getElementById('newStreetDistrictId').value = currentDistrictId;
+            document.getElementById('newStreetDistrictId').value = districtId;
             document.getElementById('addStreetModal').classList.remove('hidden');
             document.getElementById('newStreetName').focus();
         }
 
         function hideModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
 
-            // Clear form inputs
-            if (modalId === 'addMahallaModal') {
-                document.getElementById('newMahallaName').value = '';
-            } else if (modalId === 'addStreetModal') {
-                document.getElementById('newStreetName').value = '';
+                // Clear form inputs
+                if (modalId === 'addMahallaModal') {
+                    const nameInput = document.getElementById('newMahallaName');
+                    if (nameInput) nameInput.value = '';
+                } else if (modalId === 'addStreetModal') {
+                    const nameInput = document.getElementById('newStreetName');
+                    if (nameInput) nameInput.value = '';
+                }
             }
         }
 
         /**
-         * Add new mahalla via AJAX - FIXED
+         * Yangi mahalla qo'shish
          */
         function addNewMahalla() {
             const districtId = document.getElementById('newMahallaDistrictId').value;
@@ -927,6 +1042,11 @@
                 return;
             }
 
+            if (!districtId) {
+                alert('Tuman tanlanmagan!');
+                return;
+            }
+
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             
             if (!token) {
@@ -935,9 +1055,12 @@
             }
 
             const addButton = document.querySelector('#addMahallaModal button[onclick="addNewMahalla()"]');
-            const originalText = addButton.textContent;
-            addButton.disabled = true;
-            addButton.textContent = 'Qo\'shilmoqda...';
+            const originalText = addButton ? addButton.textContent : 'Qo\'shish';
+            
+            if (addButton) {
+                addButton.disabled = true;
+                addButton.textContent = 'Qo\'shilmoqda...';
+            }
 
             fetch('/api/mahallas', {
                 method: 'POST',
@@ -954,7 +1077,9 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    });
                 }
                 return response.json();
             })
@@ -963,9 +1088,11 @@
                 
                 if (result.success && result.mahalla) {
                     const select = document.getElementById('mahalla_id');
-                    const mahalla = result.mahalla;
-                    const option = new Option(mahalla.name, mahalla.id, true, true);
-                    select.add(option);
+                    if (select) {
+                        const mahalla = result.mahalla;
+                        const option = new Option(mahalla.name, mahalla.id, true, true);
+                        select.add(option);
+                    }
 
                     hideModal('addMahallaModal');
                     alert('Mahalla muvaffaqiyatli qo\'shildi!');
@@ -975,16 +1102,18 @@
             })
             .catch(error => {
                 console.error('Error adding mahalla:', error);
-                alert('Xato yuz berdi! Console log tekshiring.');
+                alert('Xato yuz berdi: ' + error.message);
             })
             .finally(() => {
-                addButton.disabled = false;
-                addButton.textContent = originalText;
+                if (addButton) {
+                    addButton.disabled = false;
+                    addButton.textContent = originalText;
+                }
             });
         }
 
         /**
-         * Add new street via AJAX - FIXED
+         * Yangi ko'cha qo'shish
          */
         function addNewStreet() {
             const districtId = document.getElementById('newStreetDistrictId').value;
@@ -999,7 +1128,7 @@
             }
 
             if (!districtId) {
-                alert('Tuman ID topilmadi!');
+                alert('Tuman tanlanmagan!');
                 return;
             }
 
@@ -1011,11 +1140,12 @@
             }
 
             const addButton = document.querySelector('#addStreetModal button[onclick="addNewStreet()"]');
-            const originalText = addButton.textContent;
-            addButton.disabled = true;
-            addButton.textContent = 'Qo\'shilmoqda...';
-
-            console.log('Sending request to add street:', { name, district_id: districtId });
+            const originalText = addButton ? addButton.textContent : 'Qo\'shish';
+            
+            if (addButton) {
+                addButton.disabled = true;
+                addButton.textContent = 'Qo\'shilmoqda...';
+            }
 
             fetch('/api/streets', {
                 method: 'POST',
@@ -1031,9 +1161,10 @@
                 })
             })
             .then(response => {
-                console.log('Add street response status:', response.status);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    });
                 }
                 return response.json();
             })
@@ -1042,26 +1173,27 @@
                 
                 if (result.success && result.street) {
                     const select = document.getElementById('street_id');
-                    const street = result.street;
-                    const option = new Option(street.name, street.id, true, true);
-                    select.add(option);
+                    if (select) {
+                        const street = result.street;
+                        const option = new Option(street.name, street.id, true, true);
+                        select.add(option);
+                    }
 
                     hideModal('addStreetModal');
                     alert('Ko\'cha muvaffaqiyatli qo\'shildi!');
-                    
-                    // Reload streets to refresh the list
-                    loadStreets(districtId, 'street_id');
                 } else {
                     alert('Xato: ' + (result.message || 'Noma\'lum xato'));
                 }
             })
             .catch(error => {
                 console.error('Error adding street:', error);
-                alert(`Xato yuz berdi!\nDistrict ID: ${districtId}\nXato: ${error.message}`);
+                alert('Xato yuz berdi: ' + error.message);
             })
             .finally(() => {
-                addButton.disabled = false;
-                addButton.textContent = originalText;
+                if (addButton) {
+                    addButton.disabled = false;
+                    addButton.textContent = originalText;
+                }
             });
         }
 
@@ -1151,10 +1283,12 @@
 
         function toggleTenantFields(checkbox) {
             const tenantFields = document.getElementById('tenantFields');
-            if (checkbox.checked) {
-                tenantFields.classList.remove('hidden');
-            } else {
-                tenantFields.classList.add('hidden');
+            if (tenantFields) {
+                if (checkbox.checked) {
+                    tenantFields.classList.remove('hidden');
+                } else {
+                    tenantFields.classList.add('hidden');
+                }
             }
         }
 
@@ -1167,8 +1301,11 @@
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
 
-                        document.getElementById('latitude').value = lat;
-                        document.getElementById('longitude').value = lng;
+                        const latInput = document.getElementById('latitude');
+                        const lngInput = document.getElementById('longitude');
+                        
+                        if (latInput) latInput.value = lat;
+                        if (lngInput) lngInput.value = lng;
 
                         // Update map if available
                         if (typeof map !== 'undefined' && map) {
@@ -1222,20 +1359,14 @@
                     console.log('Global functions found, initializing map...');
                     initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
                 } else {
-                    console.error('Global functions not found, retrying...');
-                    // Retry after 1 second
-                    setTimeout(() => {
-                        if (typeof initMap === 'function') {
-                            initMap('map', TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng);
-                        }
-                    }, 1000);
+                    console.log('Global map functions not found, skipping map initialization');
                 }
 
-                // Load mahallas if district is already selected
+                // Load mahallas and streets if district is already selected
                 const districtSelect = document.getElementById('district_id');
                 if (districtSelect && districtSelect.value) {
-                    console.log('District already selected, loading mahallas:', districtSelect.value);
-                    loadMahallas(districtSelect.value, 'mahalla_id');
+                    console.log('District already selected, loading locations:', districtSelect.value);
+                    onDistrictChange(districtSelect.value);
                 }
             }, 500);
 
@@ -1310,8 +1441,9 @@
             }
         });
 
-        // =============== EXPORT FUNCTIONS FOR TESTING ===============
+        // =============== EXPORT FUNCTIONS FOR GLOBAL ACCESS ===============
 
+        // Make functions available globally for onclick handlers
         window.addImageField = addImageField;
         window.removeImageField = removeImageField;
         window.handleImageChange = handleImageChange;
@@ -1323,55 +1455,103 @@
         window.addNewMahalla = addNewMahalla;
         window.addNewStreet = addNewStreet;
         window.getCurrentLocation = getCurrentLocation;
+        window.onDistrictChange = onDistrictChange;
+        window.onMahallaChange = onMahallaChange;
+        window.onStreetChange = onStreetChange;
         window.loadMahallas = loadMahallas;
         window.loadStreets = loadStreets;
 
-        // =============== DEBUG HELPER - ENHANCED ===============
+        // =============== DEBUG HELPER (DEVELOPMENT ONLY) ===============
 
         function debugForm() {
-            console.log('=== Enhanced Form Debug Info ===');
-            console.log('CSRF Token:', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
-            
-            const districtSelect = document.getElementById('district_id');
-            const mahallaSelect = document.getElementById('mahalla_id');
-            const streetSelect = document.getElementById('street_id');
-            
-            console.log('Districts available:', districtSelect ? districtSelect.options.length : 'Not found');
-            console.log('Current district:', districtSelect ? districtSelect.value : 'Not found');
-            console.log('Current mahalla:', mahallaSelect ? mahallaSelect.value : 'Not found');
-            console.log('Current street:', streetSelect ? streetSelect.value : 'Not found');
-            console.log('Total images:', totalImages);
-            console.log('Temp images:', tempImages);
-            
-            if (districtSelect && districtSelect.value) {
-                console.log('Testing endpoints for district:', districtSelect.value);
+            // Only show debug info in development
+            if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
+                console.log('=== Debug Ma\'lumotlari ===');
+                console.log('CSRF Token:', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
                 
-                // Test mahallas endpoint
-                fetch(`/api/mahallas?district_id=${districtSelect.value}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => {
-                    console.log('Mahallas test response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Streets test data:', data);
-                    console.log('Streets count:', Array.isArray(data) ? data.length : 'Not an array');
-                })
-                .catch(error => {
-                    console.error('Streets test error:', error);
-                });
+                const districtSelect = document.getElementById('district_id');
+                const mahallaSelect = document.getElementById('mahalla_id');
+                const streetSelect = document.getElementById('street_id');
+                
+                console.log('Tumanlar soni:', districtSelect ? districtSelect.options.length : 'Topilmadi');
+                console.log('Joriy tuman:', districtSelect ? districtSelect.value : 'Topilmadi');
+                console.log('Joriy mahalla:', mahallaSelect ? mahallaSelect.value : 'Topilmadi');
+                console.log('Joriy ko\'cha:', streetSelect ? streetSelect.value : 'Topilmadi');
+                console.log('Rasmlar soni:', totalImages);
+                
+                if (districtSelect && districtSelect.value) {
+                    console.log('Tanlangan tuman uchun test:', districtSelect.value);
+                    
+                    // Mahallalar testini o'tkazish
+                    fetch(`/api/mahallas?district_id=${districtSelect.value}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        console.log('Mahallalar test javobi:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Mahallalar soni:', Array.isArray(data) ? data.length : 'Massiv emas');
+                    })
+                    .catch(error => {
+                        console.error('Mahallalar test xatosi:', error);
+                    });
+                    
+                    // Ko'chalar testini o'tkazish
+                    fetch(`/api/streets?district_id=${districtSelect.value}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        console.log('Ko\'chalar test javobi:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Ko\'chalar soni:', Array.isArray(data) ? data.length : 'Massiv emas');
+                    })
+                    .catch(error => {
+                        console.error('Ko\'chalar test xatosi:', error);
+                    });
+                }
+                
+                console.log('======================');
             }
-            
-            console.log('======================');
         }
 
-        // Make debug function available globally
-        window.debugForm = debugForm;
+        // Make debug function available globally (development only)
+        if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
+            window.debugForm = debugForm;
+        }
+
+        // =============== ERROR HANDLING ===============
+
+        // Global error handler for unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled promise rejection:', event.reason);
+            
+            // In production, don't show technical errors to users
+            if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+                event.preventDefault(); // Prevent the default browser behavior
+            }
+        });
+
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            console.error('Global error:', event.error);
+            
+            // In production, log but don't alert users about technical errors
+            if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+                // You could send this to a logging service
+                // logErrorToService(event.error);
+            }
+        });
+
     </script>
 @endsection
-               
