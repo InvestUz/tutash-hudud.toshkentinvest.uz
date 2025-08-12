@@ -12,14 +12,13 @@ class Property extends Model
 
     protected $fillable = [
         'owner_name',
-        'owner_company',
         'owner_stir_pinfl',
         'building_cadastr_number',
         'object_name',
         'activity_type',
+        'tenant_activity_type',
         'has_tenant',
         'tenant_name',
-        'tenant_company',
         'tenant_stir_pinfl',
         'district_id',
         'mahalla_id',
@@ -27,12 +26,14 @@ class Property extends Model
         'house_number',
         'additional_info',
         'adjacent_activity_type',
+        'adjacent_activity_land',
         'adjacent_facilities',
         'latitude',
         'longitude',
         'google_maps_url',
         'images',
         'act_file',
+        'design_code_file',
         'created_by'
     ];
 

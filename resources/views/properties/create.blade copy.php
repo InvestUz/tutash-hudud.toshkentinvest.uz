@@ -38,17 +38,7 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Kompaniya nomi
-                    </label>
-                    <input type="text" name="owner_company" value="{{ old('owner_company') }}"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                    @error('owner_company')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
+    
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         STIR/PINFL <span class="text-red-500">*</span>
@@ -124,17 +114,7 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Kompaniya nomi
-                    </label>
-                    <input type="text" name="tenant_company" value="{{ old('tenant_company') }}"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                    @error('tenant_company')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
+            
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         STIR/PINFL

@@ -44,6 +44,11 @@ class PropertyController extends Controller
             $query->where('activity_type', $request->activity_type);
         }
 
+               if ($request->filled('tenant_activity_type')) {
+            $query->where('tenant_activity_type', $request->tenant_activity_type);
+        }
+
+        
         $properties = $query->paginate(15);
         $districts = District::where('is_active', true)->get();
 
@@ -60,14 +65,13 @@ class PropertyController extends Controller
     {
         $validated = $request->validate([
             'owner_name' => 'required|string|max:255',
-            'owner_company' => 'nullable|string|max:255',
             'owner_stir_pinfl' => 'required|string|max:20',
             'building_cadastr_number' => 'required|string|max:50',
             'object_name' => 'required|string|max:255',
             'activity_type' => 'required|string|max:255',
+            'tenant_activity_type' => 'required|string|max:255',
             'has_tenant' => 'boolean',
             'tenant_name' => 'nullable|string|max:255',
-            'tenant_company' => 'nullable|string|max:255',
             'tenant_stir_pinfl' => 'nullable|string|max:20',
             'district_id' => 'required|exists:districts,id',
             'mahalla_id' => 'required|exists:mahallas,id',
@@ -75,6 +79,7 @@ class PropertyController extends Controller
             'house_number' => 'required|string|max:20',
             'additional_info' => 'nullable|string',
             'adjacent_activity_type' => 'required|string|max:255',
+            'adjacent_activity_land' => 'required|string|max:255',
             'adjacent_facilities' => 'required|array',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
@@ -141,14 +146,12 @@ class PropertyController extends Controller
 
         $validated = $request->validate([
             'owner_name' => 'required|string|max:255',
-            'owner_company' => 'nullable|string|max:255',
             'owner_stir_pinfl' => 'required|string|max:20',
             'building_cadastr_number' => 'required|string|max:50',
             'object_name' => 'required|string|max:255',
             'activity_type' => 'required|string|max:255',
             'has_tenant' => 'boolean',
             'tenant_name' => 'nullable|string|max:255',
-            'tenant_company' => 'nullable|string|max:255',
             'tenant_stir_pinfl' => 'nullable|string|max:20',
             'district_id' => 'required|exists:districts,id',
             'mahalla_id' => 'required|exists:mahallas,id',
@@ -156,6 +159,7 @@ class PropertyController extends Controller
             'house_number' => 'required|string|max:20',
             'additional_info' => 'nullable|string',
             'adjacent_activity_type' => 'required|string|max:255',
+            'adjacent_activity_land' => 'required|string|max:255',
             'adjacent_facilities' => 'required|array',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180'

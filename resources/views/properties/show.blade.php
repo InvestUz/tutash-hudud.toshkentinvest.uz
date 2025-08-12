@@ -38,12 +38,7 @@
                                     <span class="text-sm font-medium text-gray-500">F.I.SH:</span>
                                     <p class="text-gray-900">{{ $property->owner_name }}</p>
                                 </div>
-                                @if($property->owner_company)
-                                    <div>
-                                        <span class="text-sm font-medium text-gray-500">Kompaniya:</span>
-                                        <p class="text-gray-900">{{ $property->owner_company }}</p>
-                                    </div>
-                                @endif
+                             
                                 <div>
                                     <span class="text-sm font-medium text-gray-500">STIR/PINFL:</span>
                                     <p class="text-gray-900">{{ $property->owner_stir_pinfl }}</p>
@@ -70,12 +65,7 @@
                                         <span class="text-sm font-medium text-gray-500">F.I.SH:</span>
                                         <p class="text-gray-900">{{ $property->tenant_name }}</p>
                                     </div>
-                                    @if($property->tenant_company)
-                                        <div>
-                                            <span class="text-sm font-medium text-gray-500">Kompaniya:</span>
-                                            <p class="text-gray-900">{{ $property->tenant_company }}</p>
-                                        </div>
-                                    @endif
+                                  
                                     @if($property->tenant_stir_pinfl)
                                         <div>
                                             <span class="text-sm font-medium text-gray-500">STIR/PINFL:</span>
@@ -132,6 +122,10 @@
                             <div>
                                 <span class="text-sm font-medium text-gray-500">Faoliyat turi:</span>
                                 <p class="text-gray-900">{{ $property->adjacent_activity_type }}</p>
+                            </div>
+                              <div>
+                                <span class="text-sm font-medium text-gray-500">Maydoni:</span>
+                                <p class="text-gray-900">{{ $property->adjacent_activity_land }}</p>
                             </div>
                             <div>
                                 <span class="text-sm font-medium text-gray-500">Qurilmalar:</span>

@@ -87,9 +87,7 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">{{ $property->owner_name }}</div>
-                            @if($property->owner_company)
-                                <div class="text-sm text-gray-500">{{ $property->owner_company }}</div>
-                            @endif
+                         
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">{{ $property->object_name }}</div>

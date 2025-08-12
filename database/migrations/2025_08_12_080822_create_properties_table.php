@@ -13,16 +13,15 @@ return new class extends Migration
 
             // Bino egasi ma'lumotlari
             $table->string('owner_name');
-            $table->string('owner_company')->nullable();
             $table->string('owner_stir_pinfl');
             $table->string('building_cadastr_number');
             $table->string('object_name');
             $table->string('activity_type');
+            $table->string('tenant_activity_type')->nullable();
 
             // Ijarachi ma'lumotlari
             $table->boolean('has_tenant')->default(false);
             $table->string('tenant_name')->nullable();
-            $table->string('tenant_company')->nullable();
             $table->string('tenant_stir_pinfl')->nullable();
 
             // Manzil ma'lumotlari
@@ -34,6 +33,7 @@ return new class extends Migration
 
             // Tutash hudud ma'lumotlari
             $table->string('adjacent_activity_type');
+            $table->string('adjacent_activity_land')->nullable();
             $table->json('adjacent_facilities'); // Array of facilities
 
             // Geolokatsiya
@@ -44,6 +44,7 @@ return new class extends Migration
             // Fayllar
             $table->json('images'); // Array of image paths
             $table->string('act_file')->nullable();
+            $table->string('design_code_file')->nullable();
 
             // Yaratuvchi
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
