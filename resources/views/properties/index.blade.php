@@ -87,7 +87,7 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">{{ $property->owner_name }}</div>
-                         
+
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">{{ $property->object_name }}</div>
@@ -120,10 +120,10 @@
                                 <a href="{{ route('properties.show', $property) }}"
                                    class="text-blue-600 hover:text-blue-900">Ko'rish</a>
 
-                                @if(auth()->user()->hasPermission('edit'))
+                                {{-- @if(auth()->user()->hasPermission('edit'))
                                     <a href="{{ route('properties.edit', $property) }}"
                                        class="text-green-600 hover:text-green-900">Tahrirlash</a>
-                                @endif
+                                @endif --}}
 
                                 @if(auth()->user()->hasPermission('delete'))
                                     <form method="POST" action="{{ route('properties.destroy', $property) }}"

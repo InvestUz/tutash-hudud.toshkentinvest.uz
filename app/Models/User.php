@@ -45,14 +45,24 @@ class User extends Authenticatable
         return $this->hasMany(Property::class, 'created_by');
     }
 
-    public function hasPermission(string $permission): bool
-    {
-        if ($this->role === 'super_admin') {
-            return true;
-        }
-
-        return in_array($permission, $this->permissions ?? []);
+public function hasPermission(string $permission): bool
+{
+    if ($this->role === 'super_admin') {
+        return true;
     }
+
+    $permissions = $this->permissions;
+
+    // Ensure $permissions is always an array
+    if (is_string($permissions)) {
+        $permissions = json_decode($permissions, true) ?: [];
+    } elseif (!is_array($permissions)) {
+        $permissions = [];
+    }
+
+    return in_array($permission, $permissions);
+}
+
 
     public function canViewProperty(Property $property): bool
     {
