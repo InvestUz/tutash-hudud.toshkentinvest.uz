@@ -16,27 +16,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Properties
     Route::resource('properties', PropertyController::class);
 
+    // Property GeoJSON for map display
+    Route::get('/properties/geojson', [PropertyController::class, 'getGeoJson'])->name('properties.geojson');
+
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// API Routes for AJAX - FIXED ROUTES
+// API Routes for AJAX
 Route::middleware(['auth'])->prefix('api')->group(function () {
-    // GET routes with query parameters (not URL parameters)
-    Route::get('/mahallas', [LocationController::class, 'getMahallas'])
-        ->name('api.mahallas.index');
-    
-    Route::get('/streets', [LocationController::class, 'getStreets'])
-        ->name('api.streets.index');
-    
-    // POST routes for creating new records
-    Route::post('/mahallas', [LocationController::class, 'storeMahalla'])
-        ->name('api.mahallas.store');
-    
-    Route::post('/streets', [LocationController::class, 'storeStreet'])
-        ->name('api.streets.store');
+    // Location management
+    Route::get('/mahallas', [LocationController::class, 'getMahallas'])->name('api.mahallas.index');
+    Route::get('/streets', [LocationController::class, 'getStreets'])->name('api.streets.index');
+    Route::post('/mahallas', [LocationController::class, 'storeMahalla'])->name('api.mahallas.store');
+    Route::post('/streets', [LocationController::class, 'storeStreet'])->name('api.streets.store');
+
+    // STIR/PINFL validation
+    Route::post('/validate-stir-pinfl', [PropertyController::class, 'validateStirPinfl'])->name('api.validate-stir-pinfl');
 });
 
 require __DIR__.'/auth.php';

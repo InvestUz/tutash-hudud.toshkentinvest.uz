@@ -5,7 +5,7 @@
 @section('content')
     <!-- Make sure you have CSRF token in your layout head section -->
     <!-- Add this if not already present: <meta name="csrf-token" content="{{ csrf_token() }}"> -->
-    
+
     <div class="bg-white shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center">
@@ -188,9 +188,9 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Tuman <span class="text-red-500">*</span>
                         </label>
-                      <select id="district_id" name="district_id" 
-                            onchange="onDistrictChange(this)" 
-                            class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" 
+                      <select id="district_id" name="district_id"
+                            onchange="onDistrictChange(this)"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                             required>
                         <option value="">Tumanni tanlang</option>
                         @foreach($districts as $district)
@@ -209,9 +209,9 @@
                             Mahalla <span class="text-red-500">*</span>
                         </label>
                         <div class="flex">
-                           <select id="mahalla_id" name="mahalla_id" 
-                                onchange="onMahallaChange(this)" 
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" 
+                           <select id="mahalla_id" name="mahalla_id"
+                                onchange="onMahallaChange(this)"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                                 required>
                             <option value="">Mahallani tanlang yoki yarating</option>
                         </select>
@@ -231,9 +231,9 @@
                             Ko'cha <span class="text-red-500">*</span>
                         </label>
                         <div class="flex">
-                            <select id="street_id" name="street_id" 
-                                    onchange="onStreetChange(this)" 
-                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" 
+                            <select id="street_id" name="street_id"
+                                    onchange="onStreetChange(this)"
+                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                                     required>
                                 <option value="">Ko'chani tanlang yoki yarating</option>
                             </select>
@@ -353,7 +353,7 @@
                         @error('design_code_file')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
-                        
+
                         <!-- Show previously uploaded file if validation failed -->
                         @if(old('design_code_file_name'))
                             <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
@@ -476,7 +476,7 @@
                         @error('act_file')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
-                        
+
                         <!-- Show previously uploaded act file if validation failed -->
                         @if(session('uploaded_act_file'))
                             <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
@@ -568,17 +568,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM Content Loaded');
             console.log('Temp images from session:', tempImages);
-            
+
             // Add 4 default image fields
             for (let i = 0; i < 4; i++) {
                 addImageField();
             }
-            
+
             // Account for temporary images from previous upload attempt
             if (tempImages.length > 0) {
                 totalImages = tempImages.length;
             }
-            
+
             updateImageCounter();
             initializeForm();
         });
@@ -730,13 +730,13 @@
         function onDistrictChange(selectElement) {
             // Element yoki value qabul qilishi mumkin
             const districtId = typeof selectElement === 'object' ? selectElement.value : selectElement;
-            
+
             console.log('District changed to:', districtId);
             console.log('District ID type:', typeof districtId);
-            
+
             // FIXED: District ID ni string dan number ga o'tkazish va validation
             const numericDistrictId = parseInt(districtId);
-            
+
             if (!districtId || districtId === '' || districtId === 'null' || districtId === 'undefined' || isNaN(numericDistrictId) || numericDistrictId < 1 || numericDistrictId > 12) {
                 console.log('District ID noto\'g\'ri:', districtId, 'Reset qilish...');
                 resetMahallaSelect();
@@ -773,9 +773,9 @@
          */
         function loadMahallas(districtId) {
             console.log('Loading mahallas for district:', districtId);
-            
+
             const mahallaSelect = document.getElementById('mahalla_id');
-            
+
             // FIXED: District ID validation (1-12 orasida bo'lishi kerak)
             const numericDistrictId = parseInt(districtId);
             if (!districtId || districtId === '' || districtId === 'null' || isNaN(numericDistrictId) || numericDistrictId < 1 || numericDistrictId > 12) {
@@ -812,10 +812,10 @@
             })
             .then(data => {
                 console.log('Mahallas data received:', data);
-                
+
                 // Selectni tozalash va boshlang'ich optionni qo'shish
                 mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
-                
+
                 // Mahallalarni qo'shish
                 if (Array.isArray(data)) {
                     if (data.length > 0) {
@@ -832,7 +832,7 @@
                 }
 
                 mahallaSelect.disabled = false;
-                
+
                 // Eski qiymatni tiklash (agar mavjud bo'lsa)
                 @if(old('mahalla_id'))
                     const oldMahallaId = '{{ old("mahalla_id") }}';
@@ -855,9 +855,9 @@
          */
         function loadStreets(districtId) {
             console.log('Loading streets for district:', districtId);
-            
+
             const streetSelect = document.getElementById('street_id');
-            
+
             // FIXED: District ID validation (1-12 orasida bo'lishi kerak)
             const numericDistrictId = parseInt(districtId);
             if (!districtId || districtId === '' || districtId === 'null' || isNaN(numericDistrictId) || numericDistrictId < 1 || numericDistrictId > 12) {
@@ -886,7 +886,7 @@
             .then(response => {
                 console.log('Streets response status:', response.status);
                 console.log('Streets response URL:', response.url);
-                
+
                 if (!response.ok) {
                     return response.text().then(text => {
                         console.error('Streets response error body:', text);
@@ -899,10 +899,10 @@
                 console.log('Streets data received:', data);
                 console.log('Streets data type:', typeof data);
                 console.log('Is array:', Array.isArray(data));
-                
+
                 // Selectni tozalash va boshlang'ich optionni qo'shish
                 streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
-                
+
                 // Ko'chalarni qo'shish
                 if (Array.isArray(data)) {
                     if (data.length > 0) {
@@ -931,7 +931,7 @@
                 }
 
                 streetSelect.disabled = false;
-                
+
                 // Eski qiymatni tiklash (agar mavjud bo'lsa)
                 @if(old('street_id'))
                     const oldStreetId = '{{ old("street_id") }}';
@@ -945,7 +945,7 @@
                 console.error('Error loading streets:', error);
                 streetSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
                 streetSelect.disabled = false;
-                
+
                 // Production da foydalanuvchiga oddiy xabar ko'rsatish
                 if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
                     alert('Ko\'chalarni yuklashda xato yuz berdi. Sahifani yangilab ko\'ring.');
@@ -982,9 +982,9 @@
         function showAddMahallaModal() {
             const districtSelect = document.getElementById('district_id');
             const districtId = districtSelect ? districtSelect.value : null;
-            
+
             console.log('showAddMahallaModal called with districtId:', districtId);
-            
+
             if (!districtId) {
                 alert('Avval tumanni tanlang!');
                 return;
@@ -998,9 +998,9 @@
         function showAddStreetModal() {
             const districtSelect = document.getElementById('district_id');
             const districtId = districtSelect ? districtSelect.value : null;
-            
+
             console.log('showAddStreetModal called with districtId:', districtId);
-            
+
             if (!districtId) {
                 alert('Avval tumanni tanlang!');
                 return;
@@ -1048,7 +1048,7 @@
             }
 
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            
+
             if (!token) {
                 alert('CSRF token topilmadi! Sahifani yangilab ko\'ring.');
                 return;
@@ -1056,7 +1056,7 @@
 
             const addButton = document.querySelector('#addMahallaModal button[onclick="addNewMahalla()"]');
             const originalText = addButton ? addButton.textContent : 'Qo\'shish';
-            
+
             if (addButton) {
                 addButton.disabled = true;
                 addButton.textContent = 'Qo\'shilmoqda...';
@@ -1085,7 +1085,7 @@
             })
             .then(result => {
                 console.log('Add mahalla result:', result);
-                
+
                 if (result.success && result.mahalla) {
                     const select = document.getElementById('mahalla_id');
                     if (select) {
@@ -1133,7 +1133,7 @@
             }
 
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            
+
             if (!token) {
                 alert('CSRF token topilmadi! Sahifani yangilab ko\'ring.');
                 return;
@@ -1141,7 +1141,7 @@
 
             const addButton = document.querySelector('#addStreetModal button[onclick="addNewStreet()"]');
             const originalText = addButton ? addButton.textContent : 'Qo\'shish';
-            
+
             if (addButton) {
                 addButton.disabled = true;
                 addButton.textContent = 'Qo\'shilmoqda...';
@@ -1170,7 +1170,7 @@
             })
             .then(result => {
                 console.log('Add street result:', result);
-                
+
                 if (result.success && result.street) {
                     const select = document.getElementById('street_id');
                     if (select) {
@@ -1218,7 +1218,7 @@
             // Validate images - must have at least 4
             const newImagesCount = document.querySelectorAll('.image-field input[type="file"]').length;
             let validNewImages = 0;
-            
+
             document.querySelectorAll('.image-field input[type="file"]').forEach(input => {
                 if (input.files.length > 0) {
                     validNewImages++;
@@ -1303,7 +1303,7 @@
 
                         const latInput = document.getElementById('latitude');
                         const lngInput = document.getElementById('longitude');
-                        
+
                         if (latInput) latInput.value = lat;
                         if (lngInput) lngInput.value = lng;
 
@@ -1372,7 +1372,7 @@
 
             // Setup real-time validation
             setupRealTimeValidation();
-            
+
             console.log('Form initialization complete');
         }
 
@@ -1468,20 +1468,20 @@
             if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
                 console.log('=== Debug Ma\'lumotlari ===');
                 console.log('CSRF Token:', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
-                
+
                 const districtSelect = document.getElementById('district_id');
                 const mahallaSelect = document.getElementById('mahalla_id');
                 const streetSelect = document.getElementById('street_id');
-                
+
                 console.log('Tumanlar soni:', districtSelect ? districtSelect.options.length : 'Topilmadi');
                 console.log('Joriy tuman:', districtSelect ? districtSelect.value : 'Topilmadi');
                 console.log('Joriy mahalla:', mahallaSelect ? mahallaSelect.value : 'Topilmadi');
                 console.log('Joriy ko\'cha:', streetSelect ? streetSelect.value : 'Topilmadi');
                 console.log('Rasmlar soni:', totalImages);
-                
+
                 if (districtSelect && districtSelect.value) {
                     console.log('Tanlangan tuman uchun test:', districtSelect.value);
-                    
+
                     // Mahallalar testini o'tkazish
                     fetch(`/api/mahallas?district_id=${districtSelect.value}`, {
                         method: 'GET',
@@ -1500,7 +1500,7 @@
                     .catch(error => {
                         console.error('Mahallalar test xatosi:', error);
                     });
-                    
+
                     // Ko'chalar testini o'tkazish
                     fetch(`/api/streets?district_id=${districtSelect.value}`, {
                         method: 'GET',
@@ -1520,7 +1520,7 @@
                         console.error('Ko\'chalar test xatosi:', error);
                     });
                 }
-                
+
                 console.log('======================');
             }
         }
@@ -1535,7 +1535,7 @@
         // Global error handler for unhandled promise rejections
         window.addEventListener('unhandledrejection', function(event) {
             console.error('Unhandled promise rejection:', event.reason);
-            
+
             // In production, don't show technical errors to users
             if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
                 event.preventDefault(); // Prevent the default browser behavior
@@ -1545,7 +1545,7 @@
         // Global error handler
         window.addEventListener('error', function(event) {
             console.error('Global error:', event.error);
-            
+
             // In production, log but don't alert users about technical errors
             if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
                 // You could send this to a logging service

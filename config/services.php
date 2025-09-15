@@ -30,5 +30,9 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
-
+    'didox' => [
+        'base_url' => env('DIDOX_API_BASE_URL', 'https://api-partners.didox.uz/v1'),
+        'api_key' => env('DIDOX_API_KEY'),
+        'timeout' => env('DIDOX_API_TIMEOUT', 30),
+    ],
 ];
