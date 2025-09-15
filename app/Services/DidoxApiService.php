@@ -20,21 +20,20 @@ class DidoxApiService
 
     /**
      * Validate individual (physical person) by PINFL
+     * FIXED: Uses same endpoint as legal entity - GET /profile/{pinfl}
      */
     public function validateIndividual(string $pinfl): array
     {
         try {
-            $url = "{$this->baseUrl}/profile/pingl";
+            // FIXED: Use same endpoint pattern as legal entity
+            $url = "{$this->baseUrl}/profile/{$pinfl}";
 
             $response = Http::timeout($this->timeout)
                 ->withHeaders([
                     'Authorization' => "Bearer {$this->apiKey}",
-                    'Content-Type' => 'application/json',
                     'Accept' => 'application/json'
                 ])
-                ->post($url, [
-                    'personalNum' => $pinfl
-                ]);
+                ->get($url);
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -47,7 +46,9 @@ class DidoxApiService
                     'address' => $data['address'] ?? '',
                     'region_id' => $data['regionId'] ?? '',
                     'district_id' => $data['districtId'] ?? '',
-                    'is_active' => isset($data['statusCode']) ? $data['statusCode'] == 0 : true
+                    'is_active' => isset($data['statusCode']) ? $data['statusCode'] == 0 : true,
+                    'passport' => $data['passport'] ?? '',
+                    'pinfl' => $data['personalNum'] ?? $pinfl
                 ];
             }
 
@@ -78,6 +79,7 @@ class DidoxApiService
 
     /**
      * Validate legal entity (company) by TIN
+     * Uses GET method with TIN in URL path
      */
     public function validateLegalEntity(string $tin): array
     {
@@ -87,7 +89,6 @@ class DidoxApiService
             $response = Http::timeout($this->timeout)
                 ->withHeaders([
                     'Authorization' => "Bearer {$this->apiKey}",
-                    'Content-Type' => 'application/json',
                     'Accept' => 'application/json'
                 ])
                 ->get($url);
@@ -144,16 +145,17 @@ class DidoxApiService
 
     /**
      * Auto-detect and validate STIR/PINFL
+     * Both use the same endpoint: GET /profile/{number}
      */
     public function validateStirPinfl(string $stirPinfl): array
     {
         $cleaned = preg_replace('/[^0-9]/', '', $stirPinfl);
 
         if (strlen($cleaned) === 14) {
-            // Individual (PINFL)
+            // Individual (PINFL) - 14 digits
             return $this->validateIndividual($cleaned);
         } elseif (strlen($cleaned) === 9) {
-            // Legal entity (TIN)
+            // Legal entity (TIN) - 9 digits
             return $this->validateLegalEntity($cleaned);
         }
 
