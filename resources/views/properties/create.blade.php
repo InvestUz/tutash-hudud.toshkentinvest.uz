@@ -765,11 +765,38 @@
                 // Initialize map
                 this.propertyMap = L.map('propertyMap').setView(this.TASHKENT_BOUNDS.center, 12);
 
-                // Add OpenStreetMap tiles
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                // Define different tile layers
+                const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '© OpenStreetMap contributors'
-                }).addTo(this.propertyMap);
+                });
+
+                const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19,
+                    attribution: '© Esri, Maxar, Earthstar Geographics'
+                });
+
+                const hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19,
+                    attribution: '© Esri, Maxar, Earthstar Geographics'
+                });
+
+                const hybridLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19
+                });
+
+                // Add default layer (OpenStreetMap)
+                satelliteLayer.addTo(this.propertyMap);
+
+                // Create layer control
+                const baseLayers = {
+                    "Oddiy xarita": osmLayer,
+                    "Satellit": satelliteLayer,
+                    "Gibrid": L.layerGroup([satelliteLayer, hybridLabels])
+                };
+
+                // Add layer control to map
+                L.control.layers(baseLayers).addTo(this.propertyMap);
 
                 // Initialize drawn items layer
                 this.drawnItems = new L.FeatureGroup();
