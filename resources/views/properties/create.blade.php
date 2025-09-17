@@ -51,23 +51,18 @@
                     Kadastr va asosiy ma'lumotlar
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">
-        Kadastr raqami <span class="text-red-500">*</span>
-    </label>
-    <input type="text" id="building_cadastr_number" name="building_cadastr_number"
-        value="{{ old('building_cadastr_number') }}" required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('building_cadastr_number') border-red-500 @enderror"
-        placeholder="10:08:07:02:03:0174" maxlength="100">
-
-    @error('building_cadastr_number')
-        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-    @enderror
-</div>
-
-
-
-
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Kadastr raqami <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="building_cadastr_number" name="building_cadastr_number"
+                            value="{{ old('building_cadastr_number') }}" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('building_cadastr_number') border-red-500 @enderror"
+                            placeholder="10:08:07:02:03:0174" maxlength="100">
+                        @error('building_cadastr_number')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -116,7 +111,7 @@
                             Tuman <span class="text-red-500">*</span>
                         </label>
                         <select id="district_id" name="district_id" onchange="PropertyForm.onDistrictChange(this)"
-                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('district_id') border-red-500 @enderror" required>
                             <option value="">Tumanni tanlang</option>
                             @foreach($districts as $district)
                                 <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>
@@ -135,8 +130,15 @@
                         </label>
                         <div class="flex">
                             <select id="mahalla_id" name="mahalla_id" onchange="PropertyForm.onMahallaChange(this)"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('mahalla_id') border-red-500 @enderror" required>
                                 <option value="">Mahallani tanlang yoki yarating</option>
+                                @if(old('district_id'))
+                                    @foreach($mahallas ?? [] as $mahalla)
+                                        <option value="{{ $mahalla->id }}" {{ old('mahalla_id') == $mahalla->id ? 'selected' : '' }}>
+                                            {{ $mahalla->name }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
                             <button type="button" onclick="PropertyForm.showAddMahallaModal()"
                                     class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-r-lg">+</button>
@@ -152,8 +154,15 @@
                         </label>
                         <div class="flex">
                             <select id="street_id" name="street_id" onchange="PropertyForm.onStreetChange(this)"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('street_id') border-red-500 @enderror" required>
                                 <option value="">Ko'chani tanlang yoki yarating</option>
+                                @if(old('district_id'))
+                                    @foreach($streets ?? [] as $street)
+                                        <option value="{{ $street->id }}" {{ old('street_id') == $street->id ? 'selected' : '' }}>
+                                            {{ $street->name }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
                             <button type="button" onclick="PropertyForm.showAddStreetModal()"
                                     class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-r-lg">+</button>
@@ -212,351 +221,201 @@
                 </div>
             </div>
 
-         <!-- Tutash hudud yuzasi hisoblash (Google Maps usuli) -->
- <div class="mb-8 bg-white p-6 rounded-lg shadow">
-        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            Tutash hudud yuzasi (Uzunlik x Kenglik)
-        </h3>
-
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            <!-- Area Calculation Section -->
+            <div class="mb-8 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
+                    Tutash hudud yuzasi (Uzunlik x Kenglik)
+                </h3>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700">
+                                <strong>Oson hisoblash!</strong> Faqat uzunlik va kenglikni kiriting - yuzasi avtomatik hisoblanadi.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="ml-3">
-                    <p class="text-sm text-blue-700">
-                        <strong>Oson hisoblash!</strong> Faqat uzunlik va kenglikni kiriting - yuzasi avtomatik hisoblanadi.
-                    </p>
+
+                <!-- Input method selection -->
+                <div class="mb-6">
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="input_method" value="rectangle"
+                                {{ old('input_method', 'rectangle') == 'rectangle' ? 'checked' : '' }}
+                                onchange="switchInputMethod('rectangle')"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Uzunlik x Kenglik</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="input_method" value="coordinates"
+                                {{ old('input_method') == 'coordinates' ? 'checked' : '' }}
+                                onchange="switchInputMethod('coordinates')"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">GPS koordinatalari orqali</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Input usuli tanlash -->
-        <div class="mb-6">
-            <div class="flex space-x-4">
-                <label class="flex items-center">
-                    <input type="radio" name="input_method" value="rectangle" checked onchange="switchInputMethod('rectangle')"
-                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="ml-2 text-sm text-gray-700">Uzunlik x Kenglik</span>
-                </label>
-                <label class="flex items-center" style="display: none !important">
-                    <input type="radio" name="input_method" value="coordinates" onchange="switchInputMethod('coordinates')"
-                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="ml-2 text-sm text-gray-700">GPS koordinatalari orqali</span>
-                </label>
+                <!-- Rectangle method -->
+                <div id="rectangle_method" class="mb-6 {{ old('input_method', 'rectangle') != 'rectangle' ? 'hidden' : '' }}">
+                    <h4 class="text-md font-medium text-gray-800 mb-3">Hududning o'lchamlari:</h4>
 
-            </div>
-        </div>
+                    <!-- Visual diagram -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="flex justify-center" style="padding: 20px">
+                            <div class="relative">
+                                <!-- Rectangle representation -->
+                                <div class="w-32 h-20 border-2 border-blue-500 bg-blue-100 relative">
+                                    <!-- Length arrow (top) -->
+                                    <div class="absolute -top-6 left-0 right-0 flex items-center justify-center">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-0.5 bg-red-500"></div>
+                                            <div class="flex-1 border-t border-red-500 mx-1"></div>
+                                            <div class="text-xs text-red-600 mx-2" id="length_display">Uzunlik</div>
+                                            <div class="flex-1 border-t border-red-500 mx-1"></div>
+                                            <div class="w-2 h-0.5 bg-red-500"></div>
+                                        </div>
+                                    </div>
 
-        <!-- Uzunlik x Kenglik usuli -->
-        <div id="rectangle_method" class="mb-6">
-            <h4 class="text-md font-medium text-gray-800 mb-3">Hududning o'lchamlari:</h4>
+                                    <!-- Width arrow (right) -->
+                                    <div class="absolute -right-8 top-0 bottom-0 flex items-center justify-center">
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-0.5 h-2 bg-green-500"></div>
+                                            <div class="flex-1 border-l border-green-500 my-1"></div>
+                                            <div class="text-xs text-green-600 mx-2 transform -rotate-90 whitespace-nowrap" id="width_display">Kenglik</div>
+                                            <div class="flex-1 border-l border-green-500 my-1"></div>
+                                            <div class="w-0.5 h-2 bg-green-500"></div>
+                                        </div>
+                                    </div>
 
-            <!-- Visual diagram -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-4">
-
-                <div class="flex justify-center" style="padding: 20px">
-                    <div class="relative">
-                        <!-- Rectangle representation -->
-                        <div class="w-32 h-20 border-2 border-blue-500 bg-blue-100 relative">
-                            <!-- Length arrow (top) -->
-                            <div class="absolute -top-6 left-0 right-0 flex items-center justify-center">
-                                <div class="flex items-center">
-                                    <div class="w-2 h-0.5 bg-red-500"></div>
-                                    <div class="flex-1 border-t border-red-500 mx-1"></div>
-                                    <div class="text-xs text-red-600 mx-2" id="length_display">Uzunlik</div>
-                                    <div class="flex-1 border-t border-red-500 mx-1"></div>
-                                    <div class="w-2 h-0.5 bg-red-500"></div>
+                                    <!-- Center text -->
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="text-xs text-blue-800 font-medium" id="area_display">Hudud</div>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <!-- Width arrow (right) -->
-                            <div class="absolute -right-8 top-0 bottom-0 flex items-center justify-center" >
-                                <div class="flex flex-col items-center">
-                                    <div class="w-0.5 h-2 bg-green-500"></div>
-                                    <div class="flex-1 border-l border-green-500 my-1"></div>
-                                    <div class="text-xs text-green-600 mx-2 transform -rotate-90 whitespace-nowrap" id="width_display">Kenglik</div>
-                                    <div class="flex-1 border-l border-green-500 my-1"></div>
-                                    <div class="w-0.5 h-2 bg-green-500"></div>
-                                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Uzunlik (m) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" step="0.01" name="area_length" id="area_length"
+                                value="{{ old('area_length', '0') }}"
+                                oninput="calculateFromRectangle()"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Masalan: 15.0">
+                            <p class="text-xs text-gray-500 mt-1">Hududning eng uzun tomoni</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Kenglik (m) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" step="0.01" name="area_width" id="area_width"
+                                value="{{ old('area_width', '0') }}"
+                                oninput="calculateFromRectangle()"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Masalan: 8.5">
+                            <p class="text-xs text-gray-500 mt-1">Hududning keng tomoni</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GPS coordinates method -->
+                <div id="coordinates_method" class="mb-6 {{ old('input_method') != 'coordinates' ? 'hidden' : '' }}">
+                    <h4 class="text-md font-medium text-gray-800 mb-3">GPS koordinatalarini kiriting (kamida 3 ta nuqta):</h4>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div id="coordinate_inputs">
+                            @if(old('input_method') == 'coordinates' && old('coordinate_lat'))
+                                @foreach(old('coordinate_lat') as $index => $lat)
+                                    <div id="coord_{{ $index }}" class="flex items-center space-x-2 mb-2">
+                                        <div class="w-8 text-sm font-medium text-gray-600">P{{ $index + 1 }}:</div>
+                                        <div class="flex-1">
+                                            <input type="number" step="0.0000001" name="coordinate_lat[]"
+                                                value="{{ $lat }}"
+                                                placeholder="41.3111 (Kenglik)"
+                                                class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lat"
+                                                oninput="calculateFromCoordinates()">
+                                        </div>
+                                        <div class="flex-1">
+                                            <input type="number" step="0.0000001" name="coordinate_lng[]"
+                                                value="{{ old('coordinate_lng')[$index] ?? '' }}"
+                                                placeholder="69.2797 (Uzunlik)"
+                                                class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lng"
+                                                oninput="calculateFromCoordinates()">
+                                        </div>
+                                        <button type="button" onclick="removeCoordinateInput('coord_{{ $index }}')"
+                                            class="text-red-500 hover:text-red-700 text-sm px-2">×</button>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                        <button type="button" onclick="addCoordinateInput()"
+                            class="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm rounded">
+                            + Nuqta qo'shish
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calculation result -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-medium text-green-800">Avtomatik hisoblash natijasi</h4>
+                        <div class="text-sm text-green-600">
+                            <span id="calculation_method">To'rtburchak formulasi</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Result -->
+                        <div>
+                            <div class="text-sm text-green-700 mb-1">Yuzasi</div>
+                            <div id="calculated_area" class="text-3xl font-bold text-green-900 mb-2">0.00 m²</div>
+                            <div class="text-sm text-green-600">
+                                Perimetr: <span id="calculated_perimeter">0.00 m</span>
                             </div>
+                        </div>
 
-                            <!-- Center text -->
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div class="text-xs text-blue-800 font-medium" id="area_display">Hudud</div>
+                        <!-- Formula -->
+                        <div class="bg-white rounded-lg p-4 border">
+                            <div class="text-sm font-medium text-gray-800 mb-2">Hisoblash jarayoni:</div>
+                            <div id="calculation_formula" class="text-xs text-gray-600 space-y-1">
+                                Uzunlik va kenglikni kiriting...
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Hidden inputs for database -->
+                <input type="hidden" name="calculated_land_area" id="calculated_land_area" value="{{ old('calculated_land_area') }}">
+                <input type="hidden" name="area_calculation_method" id="area_calculation_method" value="{{ old('area_calculation_method') }}">
+
+                <!-- Manual area input -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Uzunlik (m) <span class="text-red-500">*</span>
+                        Umumiy maydon (tekshirish uchun) (m²) <span class="text-red-500">*</span>
                     </label>
-                    <input type="number" step="0.01" name="area_length" id="area_length" value="0"
-                        oninput="calculateFromRectangle()"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Masalan: 15.0">
-                    <p class="text-xs text-gray-500 mt-1">Hududning eng uzun tomoni</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Kenglik (m) <span class="text-red-500">*</span>
-                    </label>
-                    <input type="number" step="0.01" name="area_width" id="area_width" value="0"
-                        oninput="calculateFromRectangle()"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Masalan: 8.5">
-                    <p class="text-xs text-gray-500 mt-1">Hududning keng tomoni</p>
+                    <input type="number" step="0.01" name="total_area" id="total_area"
+                        value="{{ old('total_area') }}" required
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('total_area') border-red-500 @enderror"
+                        placeholder="Yuqorida hisoblangan qiymat bilan taqqoslang">
+                    <p class="text-xs text-gray-500 mt-1">Bu maydon yuqoridagi avtomatik hisoblash bilan taqqoslash uchun</p>
+                    @error('total_area')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
-        </div>
-
-        <!-- GPS koordinatalari usuli -->
-        <div id="coordinates_method" class="mb-6 hidden">
-            <h4 class="text-md font-medium text-gray-800 mb-3">GPS koordinatalarini kiriting (kamida 3 ta nuqta):</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-                <div id="coordinate_inputs">
-                    <!-- JavaScript orqali qo'shiladi -->
-                </div>
-                <button type="button" onclick="addCoordinateInput()"
-                    class="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm rounded">
-                    + Nuqta qo'shish
-                </button>
-            </div>
-        </div>
-
-        <!-- Poligon chizish usuli -->
-        <div id="polygon_method" class="mb-6 hidden">
-            <h4 class="text-md font-medium text-gray-800 mb-3">Xaritada poligon chizing:</h4>
-            <p class="text-sm text-gray-600 mb-3">Pastdagi xaritada "Poligon chizish" tugmasini bosib, hududni belgilang</p>
-        </div>
-
-        <!-- Hisoblash natijasi -->
-        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-4">
-            <div class="flex items-center justify-between mb-4">
-                <h4 class="text-lg font-medium text-green-800">Avtomatik hisoblash natijasi</h4>
-                <div class="text-sm text-green-600">
-                    <span id="calculation_method">To'rtburchak formulasi</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Natija -->
-                <div>
-                    <div class="text-sm text-green-700 mb-1">Yuzasi</div>
-                    <div id="calculated_area" class="text-3xl font-bold text-green-900 mb-2">0.00 m²</div>
-                    <div class="text-sm text-green-600">
-                        Perimetr: <span id="calculated_perimeter">0.00 m</span>
-                    </div>
-                </div>
-
-                <!-- Formula -->
-                <div class="bg-white rounded-lg p-4 border">
-                    <div class="text-sm font-medium text-gray-800 mb-2">Hisoblash jarayoni:</div>
-                    <div id="calculation_formula" class="text-xs text-gray-600 space-y-1">
-                        Uzunlik va kenglikni kiriting...
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hidden inputs for database -->
-        <input type="hidden" name="calculated_land_area" id="calculated_land_area" value="">
-        <input type="hidden" name="area_calculation_method" id="area_calculation_method" value="">
-
-        <!-- Manual maydon kiritish -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Umumiy maydon (tekshirish uchun) (m²) <span class="text-red-500">*</span>
-            </label>
-            <input type="number" step="0.01" name="total_area" id="total_area" value="" required
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Yuqorida hisoblangan qiymat bilan taqqoslang">
-            <p class="text-xs text-gray-500 mt-1">Bu maydon yuqoridagi avtomatik hisoblash bilan taqqoslash uchun</p>
-        </div>
-    </div>
-
-<script>
-let coordinateIndex = 0;
-
-// Input usulini o'zgartirish
-function switchInputMethod(method) {
-    document.getElementById('rectangle_method').classList.toggle('hidden', method !== 'rectangle');
-    document.getElementById('coordinates_method').classList.toggle('hidden', method !== 'coordinates');
-
-    if (method === 'coordinates' && document.getElementById('coordinate_inputs').children.length === 0) {
-        for (let i = 0; i < 4; i++) addCoordinateInput();
-        calculateFromCoordinates();
-    } else if (method === 'rectangle') {
-        calculateFromRectangle();
-    }
-}
-
-// GPS koordinata input qo'shish
-function addCoordinateInput() {
-    const container = document.getElementById('coordinate_inputs');
-    const inputId = 'coord_' + coordinateIndex;
-
-const inputHtml = `
-    <div id="${inputId}" class="flex items-center space-x-2 mb-2">
-        <div class="w-8 text-sm font-medium text-gray-600">P${coordinateIndex + 1}:</div>
-        <div class="flex-1">
-            <input type="number" step="0.0000001"
-                placeholder="41.3111 (Kenglik)"
-                class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lat "
-                oninput="calculateFromCoordinates()">
-        </div>
-        <div class="flex-1">
-            <input type="number" step="0.0000001"
-                placeholder="69.2797 (Uzunlik)"
-                class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lng"
-                oninput="calculateFromCoordinates()">
-        </div>
-        <button type="button" onclick="removeCoordinateInput('${inputId}')"
-            class="text-red-500 hover:text-red-700 text-sm px-2">×</button>
-    </div>
-`;
-
-
-    container.insertAdjacentHTML('beforeend', inputHtml);
-    coordinateIndex++;
-}
-
-// GPS koordinata input o'chirish
-function removeCoordinateInput(inputId) {
-    document.getElementById(inputId).remove();
-    calculateFromCoordinates();
-}
-
-// Uzunlik x Kenglik orqali hisoblash
-function calculateFromRectangle() {
-    const length = parseFloat(document.getElementById('area_length').value) || 0;
-    const width = parseFloat(document.getElementById('area_width').value) || 0;
-
-    // Update visual display
-    document.getElementById('length_display').textContent = length > 0 ? `${length}m` : 'Uzunlik';
-    document.getElementById('width_display').textContent = width > 0 ? `${width}m` : 'Kenglik';
-
-    if (!length || !width) {
-        displayResult(0, 0, 'Uzunlik va kenglikni kiriting...', 'To\'rtburchak formulasi');
-        document.getElementById('area_display').textContent = 'Hudud';
-        return;
-    }
-
-    // Calculate area and perimeter
-    const area = length * width;
-    const perimeter = 2 * (length + width);
-
-    // Update visual display
-    document.getElementById('area_display').textContent = `${area.toFixed(1)}m²`;
-
-    const formula = `
-        <div><strong>To'rtburchak formulasi:</strong></div>
-        <div>Uzunlik = ${length} m</div>
-        <div>Kenglik = ${width} m</div>
-        <div><strong>Yuzasi = ${length} × ${width} = ${area.toFixed(2)} m²</strong></div>
-        <div><strong>Perimetr = 2 × (${length} + ${width}) = ${perimeter.toFixed(2)} m</strong></div>
-    `;
-
-    displayResult(area, perimeter, formula, 'To\'rtburchak formulasi');
-}
-
-// GPS koordinatalar orqali hisoblash (Shoelace formula)
-function calculateFromCoordinates() {
-    const latInputs = document.querySelectorAll('.coordinate-lat');
-    const lngInputs = document.querySelectorAll('.coordinate-lng');
-
-    const coordinates = [];
-    for (let i = 0; i < latInputs.length; i++) {
-        const lat = parseFloat(latInputs[i].value);
-        const lng = parseFloat(lngInputs[i].value);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            coordinates.push([lng, lat]);
-        }
-    }
-
-    if (coordinates.length < 3) {
-        displayResult(0, 0, 'Kamida 3 ta GPS koordinata kiriting...', 'Shoelace formulasi');
-        return;
-    }
-
-    // Local projection: convert to meters relative to first point
-    const lat0 = coordinates[0][1] * Math.PI / 180;
-    const lon0 = coordinates[0][0] * Math.PI / 180;
-    const R = 6371000;
-
-    const projected = coordinates.map(coord => {
-        const lat = coord[1] * Math.PI / 180;
-        const lon = coord[0] * Math.PI / 180;
-        const x = (lon - lon0) * Math.cos((lat + lat0) / 2) * R;
-        const y = (lat - lat0) * R;
-        return [x, y];
-    });
-    projected.push(projected[0]); // polygonni yopish
-
-    // Shoelace formula in meters
-    let area = 0;
-    for (let i = 0; i < projected.length - 1; i++) {
-        const [x1, y1] = projected[i];
-        const [x2, y2] = projected[i + 1];
-        area += (x1 * y2 - x2 * y1);
-    }
-    area = Math.abs(area) / 2;
-
-    // Perimeter (haversine)
-    let perimeter = 0;
-    for (let i = 0; i < coordinates.length; i++) {
-        const lat1 = coordinates[i][1] * Math.PI / 180;
-        const lon1 = coordinates[i][0] * Math.PI / 180;
-        const lat2 = coordinates[(i + 1) % coordinates.length][1] * Math.PI / 180;
-        const lon2 = coordinates[(i + 1) % coordinates.length][0] * Math.PI / 180;
-
-        const dLat = lat2 - lat1;
-        const dLon = lon2 - lon1;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2)**2;
-        perimeter += 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    const formula = `
-        <div><strong>Shoelace formulasi (metrlarda):</strong></div>
-        <div>${coordinates.length} ta nuqta ishlatildi</div>
-        <div>Yuzasi = ${area.toFixed(2)} m²</div>
-    `;
-
-    displayResult(area, perimeter, formula, 'Shoelace formulasi');
-}
-
-// Natijani ko'rsatish
-function displayResult(area, perimeter, formula, method) {
-    document.getElementById('calculated_area').textContent = area > 0 ? `${area.toFixed(2)} m²` : '0.00 m²';
-    document.getElementById('calculated_perimeter').textContent = perimeter > 0 ? `${perimeter.toFixed(2)} m` : '0.00 m';
-    document.getElementById('calculation_formula').innerHTML = formula;
-    document.getElementById('calculation_method').textContent = method;
-
-    document.getElementById('calculated_land_area').value = area.toFixed(2);
-    document.getElementById('area_calculation_method').value = method;
-
-    const totalAreaInput = document.getElementById('total_area');
-    if (area > 0 && !totalAreaInput.value) {
-        totalAreaInput.value = area.toFixed(2);
-    }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    calculateFromRectangle();
-});
-</script>
-
-
 
             <!-- Other measurements section -->
             <div class="mb-8">
@@ -934,7 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         <!-- Image Upload Fields Container -->
                         <div id="imageFieldsContainer" class="space-y-3">
-                            <!-- Default image fields will be added here by JavaScript -->
+                            <!-- Image fields will be populated by JavaScript, considering old values -->
                         </div>
 
                         <!-- Image Counter -->
@@ -958,9 +817,23 @@ document.addEventListener('DOMContentLoaded', function() {
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Akt fayli (ixtiyoriy)
                             </label>
+
+                            @if(session('temp_files.act_file'))
+                                <div class="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                    <div class="flex items-center text-green-700">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <span class="text-sm">Fayl saqlandi: {{ session('temp_files.act_file.original_name') }}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">{{ number_format(session('temp_files.act_file.size') / 1024, 1) }} KB</div>
+                                    <input type="hidden" name="temp_act_file" value="{{ session('temp_files.act_file.path') }}">
+                                </div>
+                            @endif
+
                             <input type="file" name="act_file" accept=".pdf,.doc,.docx"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('act_file') border-red-500 @enderror">
-                            <p class="text-sm text-gray-500 mt-1">PDF, DOC, DOCX formatida, maksimal 10MB</p>
+                            <p class="text-sm text-gray-500 mt-1">PDF, DOC, DOCX formatida, maksimal 10MB @if(session('temp_files.act_file'))(Yangi fayl tanlash ixtiyoriy)@endif</p>
                             @error('act_file')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -971,9 +844,23 @@ document.addEventListener('DOMContentLoaded', function() {
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Loyiha kodi fayli (ixtiyoriy)
                             </label>
+
+                            @if(session('temp_files.design_code_file'))
+                                <div class="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                    <div class="flex items-center text-green-700">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <span class="text-sm">Fayl saqlandi: {{ session('temp_files.design_code_file.original_name') }}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">{{ number_format(session('temp_files.design_code_file.size') / 1024, 1) }} KB</div>
+                                    <input type="hidden" name="temp_design_code_file" value="{{ session('temp_files.design_code_file.path') }}">
+                                </div>
+                            @endif
+
                             <input type="file" name="design_code_file" accept=".pdf,.doc,.docx,.dwg,.zip"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('design_code_file') border-red-500 @enderror">
-                            <p class="text-sm text-gray-500 mt-1">PDF, DOC, DOCX, DWG, ZIP formatida, maksimal 10MB</p>
+                            <p class="text-sm text-gray-500 mt-1">PDF, DOC, DOCX, DWG, ZIP formatida, maksimal 10MB @if(session('temp_files.design_code_file'))(Yangi fayl tanlash ixtiyoriy)@endif</p>
                             @error('design_code_file')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -999,6 +886,36 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="addMahallaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+                <div class="px-6 py-4 border-b">
+                    <h3 class="text-lg font-medium text-gray-900">Yangi mahalla qo'shish</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <input type="hidden" id="newMahallaDistrictId">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mahalla nomi</label>
+                    <input type="text" id="newMahallaName" class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        placeholder="Mahalla nomini kiriting">
+                </div>
+                <div class="px-6 py-4 border-t flex justify-end space-x-2">
+                    <button onclick="PropertyForm.hideModal('addMahallaModal')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
+                        Bekor qilish
+                    </button>
+                    <button onclick="PropertyForm.addNewMahalla()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                        Qo'shish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Street Modal -->
+    <div id="addStreetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+                <div class="px-6 py-4 border-b">
+                    <h3 class="text-lg font-medium text-gray-900">Yangi ko'cha qo'shish</h3>
+                </div>
                 <div class="px-6 py-4">
                     <input type="hidden" id="newStreetDistrictId">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Ko'cha nomi</label>
@@ -1006,11 +923,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         placeholder="Ko'cha nomini kiriting">
                 </div>
                 <div class="px-6 py-4 border-t flex justify-end space-x-2">
-                    <button onclick="hideModal('addStreetModal')"
+                    <button onclick="PropertyForm.hideModal('addStreetModal')"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
                         Bekor qilish
                     </button>
-                    <button onclick="addNewStreet()"
+                    <button onclick="PropertyForm.addNewStreet()"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                         Qo'shish
                     </button>
@@ -1057,10 +974,8 @@ document.addEventListener('DOMContentLoaded', function() {
         init: function() {
             console.log('PropertyForm initializing...');
 
-            // Add default image fields
-            for (let i = 0; i < 4; i++) {
-                this.addImageField();
-            }
+            // Initialize image fields from old values or create default ones
+            this.initializeImageFields();
             this.updateImageCounter();
 
             // Initialize map
@@ -1072,7 +987,100 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.onDistrictChange(districtSelect);
             }
 
+            // Initialize area calculation based on old values
+            this.initializeAreaCalculation();
+
             console.log('PropertyForm initialized successfully');
+        },
+
+        // Initialize image fields preserving old values and temp files
+        initializeImageFields: function() {
+            const container = document.getElementById('imageFieldsContainer');
+            if (!container) return;
+
+            // Check for temporary files from session
+            const tempFiles = @json(session('temp_files', []));
+
+            if (tempFiles && tempFiles.images && tempFiles.images.length > 0) {
+                // Display temporary files
+                tempFiles.images.forEach((tempFile, index) => {
+                    this.addImageFieldWithTempFile(tempFile, index);
+                });
+
+                // Add remaining fields to reach minimum of 4
+                const remainingFields = Math.max(0, 4 - tempFiles.images.length);
+                for (let i = 0; i < remainingFields; i++) {
+                    this.addImageField();
+                }
+            } else {
+                // Add default 4 fields for new form
+                for (let i = 0; i < 4; i++) {
+                    this.addImageField();
+                }
+            }
+        },
+
+        // Add image field with temporary file data
+        addImageFieldWithTempFile: function(tempFile, index) {
+            const container = document.getElementById('imageFieldsContainer');
+            if (!container) return;
+
+            const fieldId = 'image_field_' + imageFieldIndex;
+
+            const fieldHtml = `
+                <div id="${fieldId}" class="image-field border border-green-200 rounded-lg p-3 bg-green-50">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-medium text-gray-700">Rasm ${imageFieldIndex + 1}</label>
+                        <button type="button" onclick="PropertyForm.removeImageField('${fieldId}')"
+                                class="text-red-500 hover:text-red-700 text-sm">× O'chirish</button>
+                    </div>
+                    <div class="bg-white border border-green-300 rounded px-3 py-2">
+                        <div class="flex items-center text-green-700">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm">Fayl saqlandi: ${tempFile.original_name}</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">${(tempFile.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                    <input type="hidden" name="temp_image_paths[]" value="${tempFile.path}">
+                    <div class="mt-3">
+                        <img src="/storage/${tempFile.path}" alt="Preview" class="w-24 h-24 object-cover rounded border">
+                    </div>
+                    <div class="mt-2">
+                        <input type="file" name="images[]" accept="image/*" onchange="PropertyForm.handleImageChange(this, '${fieldId}')"
+                               class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <div class="text-xs text-gray-500 mt-1">Yangi fayl tanlash uchun (ixtiyoriy)</div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', fieldHtml);
+            imageFieldIndex++;
+            totalImages++; // Count temp files as uploaded
+            this.updateImageCounter();
+        },
+
+        // Initialize area calculation based on old values
+        initializeAreaCalculation: function() {
+            const inputMethod = document.querySelector('input[name="input_method"]:checked');
+            if (inputMethod) {
+                window.switchInputMethod(inputMethod.value);
+            }
+
+            // Restore coordinate inputs if coordinates method was selected
+            if (inputMethod && inputMethod.value === 'coordinates') {
+                const coordinateInputs = document.getElementById('coordinate_inputs');
+                if (coordinateInputs && coordinateInputs.children.length === 0) {
+                    // Add default coordinate inputs if none exist
+                    for (let i = 0; i < 4; i++) {
+                        window.addCoordinateInput();
+                    }
+                }
+                window.calculateFromCoordinates();
+            } else {
+                window.calculateFromRectangle();
+            }
         },
 
         // Initialize map
@@ -1102,6 +1110,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     self.placeMarker(e.latlng.lat, e.latlng.lng);
                 }
             });
+
+            // Restore marker if coordinates exist
+            const latInput = document.getElementById('latitude');
+            const lngInput = document.getElementById('longitude');
+            if (latInput && lngInput && latInput.value && lngInput.value) {
+                this.placeMarker(parseFloat(latInput.value), parseFloat(lngInput.value));
+                propertyMap.setView([parseFloat(latInput.value), parseFloat(lngInput.value)], 16);
+            }
 
             console.log('Map initialized successfully');
         },
@@ -1150,6 +1166,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                     propertyMap.addControl(drawControl);
+
+                    // Handle drawn polygons
+                    propertyMap.on(L.Draw.Event.CREATED, function(event) {
+                        const layer = event.layer;
+                        drawnItems.addLayer(layer);
+
+                        // Save polygon coordinates
+                        const coordinates = layer.getLatLngs()[0].map(latlng => [latlng.lng, latlng.lat]);
+                        document.getElementById('polygon_coordinates').value = JSON.stringify([coordinates]);
+                    });
                 }
                 button.textContent = 'Chizishni to\'xtatish';
                 button.className = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex-1';
@@ -1222,6 +1248,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const mahallaSelect = document.getElementById('mahalla_id');
             if (!mahallaSelect) return;
 
+            const oldValue = mahallaSelect.value; // Preserve selected value
             mahallaSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
             mahallaSelect.disabled = true;
 
@@ -1243,6 +1270,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (Array.isArray(data) && data.length > 0) {
                     data.forEach(mahalla => {
                         const option = new Option(mahalla.name, mahalla.id);
+                        if (mahalla.id == oldValue) {
+                            option.selected = true;
+                        }
                         mahallaSelect.add(option);
                     });
                 }
@@ -1260,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const streetSelect = document.getElementById('street_id');
             if (!streetSelect) return;
 
+            const oldValue = streetSelect.value; // Preserve selected value
             streetSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
             streetSelect.disabled = true;
 
@@ -1281,6 +1312,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (Array.isArray(data) && data.length > 0) {
                     data.forEach(street => {
                         const option = new Option(street.name, street.id);
+                        if (street.id == oldValue) {
+                            option.selected = true;
+                        }
                         streetSelect.add(option);
                     });
                 }
@@ -1610,8 +1644,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const coordinateInputs = document.getElementById('coordinate_inputs');
             if (coordinateInputs && coordinateInputs.children.length === 0) {
                 for (let i = 0; i < 4; i++) window.addCoordinateInput();
-                window.calculateFromCoordinates();
             }
+            window.calculateFromCoordinates();
         } else if (method === 'rectangle') {
             window.calculateFromRectangle();
         }
@@ -1627,13 +1661,13 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="${inputId}" class="flex items-center space-x-2 mb-2">
                 <div class="w-8 text-sm font-medium text-gray-600">P${coordinateIndex + 1}:</div>
                 <div class="flex-1">
-                    <input type="number" step="0.0000001"
+                    <input type="number" step="0.0000001" name="coordinate_lat[]"
                         placeholder="41.3111 (Kenglik)"
                         class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lat"
                         oninput="calculateFromCoordinates()">
                 </div>
                 <div class="flex-1">
-                    <input type="number" step="0.0000001"
+                    <input type="number" step="0.0000001" name="coordinate_lng[]"
                         placeholder="69.2797 (Uzunlik)"
                         class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lng"
                         oninput="calculateFromCoordinates()">
@@ -1974,9 +2008,6 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Initialize PropertyForm
                 PropertyForm.init();
-
-                // Initialize area calculation
-                window.calculateFromRectangle();
 
                 // Format cadastral number
                 formatCadastralNumber();

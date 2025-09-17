@@ -125,7 +125,7 @@
                                        class="text-green-600 hover:text-green-900">Tahrirlash</a>
                                 @endif --}}
 
-                                @if(auth()->user()->hasPermission('delete'))
+                                {{-- @if(auth()->user()->hasPermission('delete'))
                                     <form method="POST" action="{{ route('properties.destroy', $property) }}"
                                           class="inline" onsubmit="return confirm('Rostdan ham o\'chirmoqchimisiz?')">
                                         @csrf
@@ -134,7 +134,7 @@
                                             O'chirish
                                         </button>
                                     </form>
-                                @endif
+                                @endif --}}
                             </div>
                         </td>
                     </tr>

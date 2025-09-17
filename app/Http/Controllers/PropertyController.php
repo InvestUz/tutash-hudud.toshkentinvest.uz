@@ -68,15 +68,25 @@ class PropertyController extends Controller
         return view('properties.index', compact('properties', 'districts'));
     }
 
-    public function create()
+      public function create()
     {
         $districts = District::where('is_active', true)->get();
-        return view('properties.create', compact('districts'));
-    }
 
-public function store(Request $request)
+        // Load mahallas and streets if old district_id exists (for validation errors)
+        $mahallas = [];
+        $streets = [];
+
+        if (old('district_id')) {
+            $mahallas = Mahalla::where('district_id', old('district_id'))->get();
+            $streets = Street::where('district_id', old('district_id'))->get();
+        }
+
+        return view('properties.create', compact('districts', 'mahallas', 'streets'));
+    }
+  public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Custom validation rules
+        $rules = [
             // Cadastral and Basic Info
             'building_cadastr_number' => 'required|string|max:50|unique:properties',
             'owner_stir_pinfl' => 'required|string|max:20',
@@ -92,13 +102,17 @@ public function store(Request $request)
             'director_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
 
-            // Adjacent Area Sides (NEW - Required)
-            'side_a_b' => 'required|numeric|min:0.01',
-            'side_b_c' => 'required|numeric|min:0.01',
-            'side_c_d' => 'required|numeric|min:0.01',
-            'side_d_a' => 'required|numeric|min:0.01',
+            // Area calculation fields
+            'area_length' => 'nullable|numeric|min:0.01',
+            'area_width' => 'nullable|numeric|min:0.01',
+            'coordinate_lat' => 'nullable|array',
+            'coordinate_lat.*' => 'nullable|numeric|between:-90,90',
+            'coordinate_lng' => 'nullable|array',
+            'coordinate_lng.*' => 'nullable|numeric|between:-180,180',
+            'calculated_land_area' => 'nullable|numeric|min:0',
+            'area_calculation_method' => 'nullable|string|max:255',
 
-            // Building Measurements (Original - Optional now)
+            // Building Measurements
             'building_facade_length' => 'required|numeric|min:0',
             'summer_terrace_sides' => 'required|numeric|min:0',
             'distance_to_roadway' => 'required|numeric|min:0',
@@ -126,7 +140,7 @@ public function store(Request $request)
             // Adjacent Area Information
             'adjacent_activity_type' => 'required|string|max:255',
             'adjacent_activity_land' => 'required|string|max:255',
-            'adjacent_facilities' => 'required|array',
+            'adjacent_facilities' => 'required|array|min:1',
 
             // Geolocation
             'latitude' => 'nullable|numeric|between:-90,90',
@@ -138,25 +152,97 @@ public function store(Request $request)
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'act_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
             'design_code_file' => 'nullable|file|mimes:pdf,doc,docx,dwg,zip|max:10240'
-        ]);
+        ];
+
+        // Custom error messages
+        $messages = [
+            'building_cadastr_number.required' => 'Kadastr raqami kiritilishi shart',
+            'building_cadastr_number.unique' => 'Bu kadastr raqami allaqachon mavjud',
+            'owner_stir_pinfl.required' => 'STIR/PINFL kiritilishi shart',
+            'owner_name.required' => 'Korxona nomi yoki F.I.SH kiritilishi shart',
+            'district_id.required' => 'Tumanni tanlash shart',
+            'mahalla_id.required' => 'Mahallani tanlash shart',
+            'street_id.required' => 'Ko\'chani tanlash shart',
+            'house_number.required' => 'Uy raqami kiritilishi shart',
+            'director_name.required' => 'Rahbar F.I.SH kiritilishi shart',
+            'phone_number.required' => 'Telefon raqami kiritilishi shart',
+            'building_facade_length.required' => 'Fasad uzunligi kiritilishi shart',
+            'summer_terrace_sides.required' => 'Yozgi terassa tomonlari kiritilishi shart',
+            'distance_to_roadway.required' => 'Yo\'lgacha masofa kiritilishi shart',
+            'distance_to_sidewalk.required' => 'Trotuargacha masofa kiritilishi shart',
+            'total_area.required' => 'Umumiy maydon kiritilishi shart',
+            'usage_purpose.required' => 'Foydalanish maqsadini tanlash shart',
+            'activity_type.required' => 'Faoliyat turi kiritilishi shart',
+            'terrace_buildings_available.required' => 'Terassada qurilmalar mavjudligini belgilash shart',
+            'terrace_buildings_permanent.required' => 'Doimiy qurilmalar mavjudligini belgilash shart',
+            'has_permit.required' => 'Ruxsatnoma mavjudligini belgilash shart',
+            'adjacent_activity_type.required' => 'Tutash hududdagi faoliyat turi kiritilishi shart',
+            'adjacent_activity_land.required' => 'Tutash hudud maydoni kiritilishi shart',
+            'adjacent_facilities.required' => 'Tutash hududdagi qurilmalarni tanlash shart',
+            'adjacent_facilities.min' => 'Kamida bitta qurilmani tanlang',
+            'images.required' => 'Rasmlar yuklash shart',
+            'images.min' => 'Kamida 4 ta rasm yuklash kerak',
+            'images.*.image' => 'Faqat rasm fayllarini yuklash mumkin',
+            'images.*.mimes' => 'Faqat JPEG, PNG, JPG formatidagi rasmlar qabul qilinadi',
+            'images.*.max' => 'Rasm fayli 2MB dan oshmasligi kerak',
+            'act_file.mimes' => 'Akt fayli PDF, DOC, DOCX formatida bo\'lishi kerak',
+            'act_file.max' => 'Akt fayli 10MB dan oshmasligi kerak',
+            'design_code_file.mimes' => 'Loyiha kodi fayli PDF, DOC, DOCX, DWG, ZIP formatida bo\'lishi kerak',
+            'design_code_file.max' => 'Loyiha kodi fayli 10MB dan oshmasligi kerak'
+        ];
+
+        // First validate everything except files
+        $basicRules = $rules;
+        unset($basicRules['images'], $basicRules['images.*'], $basicRules['act_file'], $basicRules['design_code_file']);
+
+        try {
+            $validated = $request->validate($basicRules, $messages);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Store uploaded files temporarily if basic validation fails
+            $tempFiles = $this->storeTemporaryFiles($request);
+            return back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('temp_files', $tempFiles);
+        }
 
         // Validate STIR/PINFL with Didox API
         $ownerValidation = $this->didoxService->validateStirPinfl($validated['owner_stir_pinfl']);
         if (!$ownerValidation['success']) {
-            return back()->withErrors(['owner_stir_pinfl' => 'STIR/PINFL tekshirishda xato: ' . $ownerValidation['error']])
-                        ->withInput();
+            $tempFiles = $this->storeTemporaryFiles($request);
+            return back()
+                ->withErrors(['owner_stir_pinfl' => 'STIR/PINFL tekshirishda xato: ' . $ownerValidation['error']])
+                ->withInput()
+                ->with('temp_files', $tempFiles);
+        }
+
+        // Now validate files separately
+        try {
+            $fileRules = [
+                'images' => 'required|array|min:4',
+                'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+                'act_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+                'design_code_file' => 'nullable|file|mimes:pdf,doc,docx,dwg,zip|max:10240'
+            ];
+            $request->validate($fileRules, $messages);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $tempFiles = $this->storeTemporaryFiles($request);
+            return back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('temp_files', $tempFiles);
         }
 
         $validated['owner_api_data'] = $ownerValidation['data'];
         $validated['owner_verified'] = true;
 
-        // Update owner name from API if available
-        if (!empty($ownerValidation['name'])) {
+        // Update owner name from API if available and different
+        if (!empty($ownerValidation['name']) && $ownerValidation['name'] !== $validated['owner_name']) {
             $validated['owner_name'] = $ownerValidation['name'];
         }
 
         // Validate tenant if exists
-        if ($validated['has_tenant'] && !empty($validated['tenant_stir_pinfl'])) {
+        if (!empty($validated['has_tenant']) && !empty($validated['tenant_stir_pinfl'])) {
             $tenantValidation = $this->didoxService->validateStirPinfl($validated['tenant_stir_pinfl']);
             if ($tenantValidation['success']) {
                 $validated['tenant_api_data'] = $tenantValidation['data'];
@@ -166,34 +252,52 @@ public function store(Request $request)
                 if (!empty($tenantValidation['name'])) {
                     $validated['tenant_name'] = $tenantValidation['name'];
                 }
+            } else {
+                return back()
+                    ->withErrors(['tenant_stir_pinfl' => 'Ijarachi STIR/PINFL tekshirishda xato: ' . $tenantValidation['error']])
+                    ->withInput();
             }
         }
 
-        // Handle file uploads
-        $imagePaths = [];
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('properties/images', 'public');
+        // Handle file uploads - use temp files if they exist, otherwise upload new ones
+        $tempFiles = session('temp_files');
+
+        if ($tempFiles) {
+            // Move temporary files to permanent location
+            $fileData = $this->moveTempFilesToPermanent($tempFiles);
+            $validated['images'] = $fileData['images'];
+            $validated['act_file'] = $fileData['act_file'];
+            $validated['design_code_file'] = $fileData['design_code_file'];
+
+            // Clear temp files from session
+            session()->forget('temp_files');
+        } else {
+            // Handle fresh file uploads
+            $imagePaths = [];
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $imagePaths[] = $image->store('properties/images', 'public');
+                }
             }
-        }
 
-        $actFilePath = null;
-        if ($request->hasFile('act_file')) {
-            $actFilePath = $request->file('act_file')->store('properties/acts', 'public');
-        }
+            $actFilePath = null;
+            if ($request->hasFile('act_file')) {
+                $actFilePath = $request->file('act_file')->store('properties/acts', 'public');
+            }
 
-        $designCodeFilePath = null;
-        if ($request->hasFile('design_code_file')) {
-            $designCodeFilePath = $request->file('design_code_file')->store('properties/design_codes', 'public');
-        }
+            $designCodeFilePath = null;
+            if ($request->hasFile('design_code_file')) {
+                $designCodeFilePath = $request->file('design_code_file')->store('properties/design_codes', 'public');
+            }
 
-        $validated['images'] = $imagePaths;
-        $validated['act_file'] = $actFilePath;
-        $validated['design_code_file'] = $designCodeFilePath;
+            $validated['images'] = $imagePaths;
+            $validated['act_file'] = $actFilePath;
+            $validated['design_code_file'] = $designCodeFilePath;
+        }
         $validated['created_by'] = auth()->id();
 
         // Generate Google Maps URL if coordinates provided
-        if ($validated['latitude'] && $validated['longitude']) {
+        if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
             $validated['google_maps_url'] = "https://www.google.com/maps?q={$validated['latitude']},{$validated['longitude']}";
         }
 
@@ -207,31 +311,83 @@ public function store(Request $request)
             }
         }
 
+        // Remove coordinate arrays from validated data (they're not in DB schema)
+        unset($validated['coordinate_lat'], $validated['coordinate_lng']);
+
         // Create the property
         $property = Property::create($validated);
 
-        // Calculate and update the area automatically
-        $calculatedArea = $property->updateCalculatedArea();
-
         $message = 'Mulk muvaffaqiyatli qo\'shildi va STIR/PINFL tasdiqlandi!';
-        if ($calculatedArea) {
-            $message .= " Tutash hudud maydoni avtomatik hisoblab topildi: {$calculatedArea} m² ({$property->area_calculation_formula})";
-        }
 
         return redirect()->route('properties.index')->with('success', $message);
     }
 
+
     public function show(Property $property)
     {
+        // Check permissions
         if (!auth()->user()->canViewProperty($property)) {
-            abort(403);
+            abort(403, 'Bu mulkni ko\'rish uchun ruxsatingiz yo\'q');
         }
 
-        $property->load(['district', 'mahalla', 'street', 'creator']);
+        // Load all relationships
+        $property->load([
+            'district',
+            'mahalla',
+            'street',
+            'creator' => function($query) {
+                $query->select('id', 'name', 'email', 'role');
+            }
+        ]);
+
+        // Calculate additional data
+        $property->calculated_perimeter = null;
+        if ($property->area_length && $property->area_width) {
+            $property->calculated_perimeter = 2 * ($property->area_length + $property->area_width);
+        }
+
+        // Format creation date
+        $property->formatted_created_at = $property->created_at->format('d.m.Y H:i');
+        $property->formatted_updated_at = $property->updated_at->format('d.m.Y H:i');
+
+        // Check if files exist
+        $property->images_exist = collect($property->images)->filter(function($image) {
+            return Storage::disk('public')->exists($image);
+        });
+
+        $property->act_file_exists = $property->act_file && Storage::disk('public')->exists($property->act_file);
+        $property->design_code_file_exists = $property->design_code_file && Storage::disk('public')->exists($property->design_code_file);
+
+        // Get file sizes
+        if ($property->act_file_exists) {
+            $property->act_file_size = Storage::disk('public')->size($property->act_file);
+        }
+
+        if ($property->design_code_file_exists) {
+            $property->design_code_file_size = Storage::disk('public')->size($property->design_code_file);
+        }
+
+        // Format adjacent facilities
+        $facilityLabels = [
+            'kapital_qurilma' => 'Kapital qurilma',
+            'mavjud_emas' => 'Mavjud emas',
+            'yengil_qurilma' => 'Yengil qurilma',
+            'bostirma' => 'Bostirma',
+            'beton_maydoncha' => 'Beton maydoncha',
+            'elektr_quvvatlash' => 'Elektr quvvatlash',
+            'avtoturargoh' => 'Avtoturargoh',
+            'boshqalar' => 'Boshqalar',
+        ];
+
+        $property->formatted_adjacent_facilities = collect($property->adjacent_facilities)
+            ->map(function($facility) use ($facilityLabels) {
+                return $facilityLabels[$facility] ?? $facility;
+            });
+
         return view('properties.show', compact('property'));
     }
 
-    public function edit(Property $property)
+  public function edit(Property $property)
     {
         if (!auth()->user()->canViewProperty($property)) {
             abort(403);
@@ -239,147 +395,115 @@ public function store(Request $request)
 
         $districts = District::where('is_active', true)->get();
         $mahallas = Mahalla::where('district_id', $property->district_id)->get();
-        $streets = Street::where('mahalla_id', $property->mahalla_id)->get();
+        $streets = Street::where('district_id', $property->district_id)->get();
 
         return view('properties.edit', compact('property', 'districts', 'mahallas', 'streets'));
     }
 
-    public function update(Request $request, Property $property)
+  private function storeTemporaryFiles(Request $request)
     {
-        if (!auth()->user()->canViewProperty($property)) {
-            abort(403);
-        }
+        $tempFiles = [
+            'images' => [],
+            'act_file' => null,
+            'design_code_file' => null
+        ];
 
-        $validated = $request->validate([
-            // All the same validation rules as store method
-            'building_cadastr_number' => ['required', 'string', 'max:50', Rule::unique('properties')->ignore($property->id)],
-            'owner_stir_pinfl' => 'required|string|max:20',
-            'owner_name' => 'required|string|max:255',
-            'district_id' => 'required|exists:districts,id',
-            'mahalla_id' => 'required|exists:mahallas,id',
-            'street_id' => 'required|exists:streets,id',
-            'house_number' => 'required|string|max:20',
-            'director_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'building_facade_length' => 'required|numeric|min:0',
-            'summer_terrace_sides' => 'required|numeric|min:0',
-            'distance_to_roadway' => 'required|numeric|min:0',
-            'distance_to_sidewalk' => 'required|numeric|min:0',
-            'total_area' => 'required|numeric|min:0',
-            'usage_purpose' => 'required|string|max:255',
-            'terrace_buildings_available' => 'required|in:Xa,Yoq',
-            'terrace_buildings_permanent' => 'required|in:Xa,Yoq',
-            'has_permit' => 'required|in:Xa,Yoq',
-            'activity_type' => 'required|string|max:255',
-            'tenant_activity_type' => 'nullable|string|max:255',
-            'has_tenant' => 'boolean',
-            'tenant_name' => 'nullable|string|max:255',
-            'tenant_stir_pinfl' => 'nullable|string|max:20',
-            'additional_info' => 'nullable|string',
-            'adjacent_activity_type' => 'required|string|max:255',
-            'adjacent_activity_land' => 'required|string|max:255',
-            'adjacent_facilities' => 'required|array',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'polygon_coordinates' => 'nullable|json'
-        ]);
-
-        // Re-validate STIR/PINFL if changed
-        if ($validated['owner_stir_pinfl'] !== $property->owner_stir_pinfl) {
-            $ownerValidation = $this->didoxService->validateStirPinfl($validated['owner_stir_pinfl']);
-            if (!$ownerValidation['success']) {
-                return back()->withErrors(['owner_stir_pinfl' => 'STIR/PINFL tekshirishda xato: ' . $ownerValidation['error']])
-                            ->withInput();
-            }
-
-            $validated['owner_api_data'] = $ownerValidation['data'];
-            $validated['owner_verified'] = true;
-
-            if (!empty($ownerValidation['name'])) {
-                $validated['owner_name'] = $ownerValidation['name'];
-            }
-        }
-
-        // Handle tenant validation
-        if ($validated['has_tenant'] && !empty($validated['tenant_stir_pinfl'])) {
-            if ($validated['tenant_stir_pinfl'] !== $property->tenant_stir_pinfl) {
-                $tenantValidation = $this->didoxService->validateStirPinfl($validated['tenant_stir_pinfl']);
-                if ($tenantValidation['success']) {
-                    $validated['tenant_api_data'] = $tenantValidation['data'];
-                    $validated['tenant_verified'] = true;
-
-                    if (!empty($tenantValidation['name'])) {
-                        $validated['tenant_name'] = $tenantValidation['name'];
-                    }
+        // Store images temporarily
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                if ($image->isValid()) {
+                    $tempPath = $image->store('temp/images', 'public');
+                    $tempFiles['images'][] = [
+                        'path' => $tempPath,
+                        'original_name' => $image->getClientOriginalName(),
+                        'size' => $image->getSize(),
+                        'index' => $index
+                    ];
                 }
             }
-        } else {
-            $validated['tenant_api_data'] = null;
-            $validated['tenant_verified'] = false;
         }
 
-        // Handle new images if uploaded
-        if ($request->hasFile('images')) {
-            $request->validate([
-                'images' => 'array|min:4',
-                'images.*' => 'image|mimes:jpeg,png,jpg|max:2048'
-            ]);
-
-            // Delete old images
-            foreach ($property->images as $oldImage) {
-                Storage::disk('public')->delete($oldImage);
-            }
-
-            $imagePaths = [];
-            foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('properties/images', 'public');
-            }
-            $validated['images'] = $imagePaths;
+        // Store act file temporarily
+        if ($request->hasFile('act_file') && $request->file('act_file')->isValid()) {
+            $tempPath = $request->file('act_file')->store('temp/acts', 'public');
+            $tempFiles['act_file'] = [
+                'path' => $tempPath,
+                'original_name' => $request->file('act_file')->getClientOriginalName(),
+                'size' => $request->file('act_file')->getSize()
+            ];
         }
 
-        // Handle other files
-        if ($request->hasFile('act_file')) {
-            $request->validate([
-                'act_file' => 'file|mimes:pdf,doc,docx|max:10240'
-            ]);
-
-            if ($property->act_file) {
-                Storage::disk('public')->delete($property->act_file);
-            }
-
-            $validated['act_file'] = $request->file('act_file')->store('properties/acts', 'public');
+        // Store design code file temporarily
+        if ($request->hasFile('design_code_file') && $request->file('design_code_file')->isValid()) {
+            $tempPath = $request->file('design_code_file')->store('temp/design_codes', 'public');
+            $tempFiles['design_code_file'] = [
+                'path' => $tempPath,
+                'original_name' => $request->file('design_code_file')->getClientOriginalName(),
+                'size' => $request->file('design_code_file')->getSize()
+            ];
         }
 
-        if ($request->hasFile('design_code_file')) {
-            $request->validate([
-                'design_code_file' => 'file|mimes:pdf,doc,docx,dwg,zip|max:10240'
-            ]);
+        return $tempFiles;
+    }
 
-            if ($property->design_code_file) {
-                Storage::disk('public')->delete($property->design_code_file);
-            }
+    /**
+     * Move temporary files to permanent location
+     */
+    private function moveTempFilesToPermanent($tempFiles)
+    {
+        $permanentFiles = [
+            'images' => [],
+            'act_file' => null,
+            'design_code_file' => null
+        ];
 
-            $validated['design_code_file'] = $request->file('design_code_file')->store('properties/design_codes', 'public');
-        }
-
-        // Generate Google Maps URL if coordinates provided
-        if ($validated['latitude'] && $validated['longitude']) {
-            $validated['google_maps_url'] = "https://www.google.com/maps?q={$validated['latitude']},{$validated['longitude']}";
-        }
-
-        // Parse polygon coordinates if provided
-        if (!empty($validated['polygon_coordinates'])) {
-            $polygonData = json_decode($validated['polygon_coordinates'], true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $validated['polygon_coordinates'] = $polygonData;
-            } else {
-                $validated['polygon_coordinates'] = null;
+        // Move images
+        if (!empty($tempFiles['images'])) {
+            foreach ($tempFiles['images'] as $tempImage) {
+                $newPath = str_replace('temp/images/', 'properties/images/', $tempImage['path']);
+                if (Storage::disk('public')->move($tempImage['path'], $newPath)) {
+                    $permanentFiles['images'][] = $newPath;
+                }
             }
         }
 
-        $property->update($validated);
+        // Move act file
+        if (!empty($tempFiles['act_file'])) {
+            $newPath = str_replace('temp/acts/', 'properties/acts/', $tempFiles['act_file']['path']);
+            if (Storage::disk('public')->move($tempFiles['act_file']['path'], $newPath)) {
+                $permanentFiles['act_file'] = $newPath;
+            }
+        }
 
-        return redirect()->route('properties.show', $property)->with('success', 'Mulk ma\'lumotlari yangilandi!');
+        // Move design code file
+        if (!empty($tempFiles['design_code_file'])) {
+            $newPath = str_replace('temp/design_codes/', 'properties/design_codes/', $tempFiles['design_code_file']['path']);
+            if (Storage::disk('public')->move($tempFiles['design_code_file']['path'], $newPath)) {
+                $permanentFiles['design_code_file'] = $newPath;
+            }
+        }
+
+        return $permanentFiles;
+    }
+
+    /**
+     * Clean up temporary files
+     */
+    private function cleanupTempFiles($tempFiles)
+    {
+        if (!empty($tempFiles['images'])) {
+            foreach ($tempFiles['images'] as $tempImage) {
+                Storage::disk('public')->delete($tempImage['path']);
+            }
+        }
+
+        if (!empty($tempFiles['act_file'])) {
+            Storage::disk('public')->delete($tempFiles['act_file']['path']);
+        }
+
+        if (!empty($tempFiles['design_code_file'])) {
+            Storage::disk('public')->delete($tempFiles['design_code_file']['path']);
+        }
     }
 
     public function destroy(Property $property)
