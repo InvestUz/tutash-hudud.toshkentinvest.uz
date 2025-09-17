@@ -74,7 +74,7 @@ class PropertyController extends Controller
         return view('properties.create', compact('districts'));
     }
 
-    public function store(Request $request)
+public function store(Request $request)
     {
         $validated = $request->validate([
             // Cadastral and Basic Info
@@ -92,7 +92,13 @@ class PropertyController extends Controller
             'director_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
 
-            // Building Measurements
+            // Adjacent Area Sides (NEW - Required)
+            'side_a_b' => 'required|numeric|min:0.01',
+            'side_b_c' => 'required|numeric|min:0.01',
+            'side_c_d' => 'required|numeric|min:0.01',
+            'side_d_a' => 'required|numeric|min:0.01',
+
+            // Building Measurements (Original - Optional now)
             'building_facade_length' => 'required|numeric|min:0',
             'summer_terrace_sides' => 'required|numeric|min:0',
             'distance_to_roadway' => 'required|numeric|min:0',
@@ -201,9 +207,18 @@ class PropertyController extends Controller
             }
         }
 
-        Property::create($validated);
+        // Create the property
+        $property = Property::create($validated);
 
-        return redirect()->route('properties.index')->with('success', 'Mulk muvaffaqiyatli qo\'shildi va STIR/PINFL tasdiqlandi!');
+        // Calculate and update the area automatically
+        $calculatedArea = $property->updateCalculatedArea();
+
+        $message = 'Mulk muvaffaqiyatli qo\'shildi va STIR/PINFL tasdiqlandi!';
+        if ($calculatedArea) {
+            $message .= " Tutash hudud maydoni avtomatik hisoblab topildi: {$calculatedArea} m² ({$property->area_calculation_formula})";
+        }
+
+        return redirect()->route('properties.index')->with('success', $message);
     }
 
     public function show(Property $property)

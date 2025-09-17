@@ -51,17 +51,49 @@
                     Kadastr va asosiy ma'lumotlar
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Kadastr raqami <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" name="building_cadastr_number" value="{{ old('building_cadastr_number') }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('building_cadastr_number') border-red-500 @enderror"
-                            placeholder="Bino kadastr raqamini kiriting">
-                        @error('building_cadastr_number')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+             <div>
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+        Kadastr raqami <span class="text-red-500">*</span>
+    </label>
+    <input type="text" id="building_cadastr_number" name="building_cadastr_number"
+        value="{{ old('building_cadastr_number') }}" required
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('building_cadastr_number') border-red-500 @enderror"
+        placeholder="10:08:07:02:03:0174" maxlength="100">
+
+    @error('building_cadastr_number')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
+<script>
+document.getElementById("building_cadastr_number").addEventListener("input", function (e) {
+    let value = e.target.value;
+
+    // remove all colons first
+    value = value.replace(/:/g, "");
+
+    // split into first 6 parts (max 5 colons)
+    let parts = [];
+    let rest = value;
+
+    for (let i = 0; i < 5 && rest.length > 0; i++) {
+        // take up to 2–3 digits before each colon, or leave it free
+        parts.push(rest.substring(0, 2));
+        rest = rest.substring(2);
+    }
+
+    // push whatever is left (can be long, with /, etc.)
+    if (rest.length > 0) {
+        parts.push(rest);
+    }
+
+    // join with colons
+    e.target.value = parts.join(":");
+});
+</script>
+
+
+
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -206,15 +238,361 @@
                 </div>
             </div>
 
-            <!-- Building Measurements -->
+         <!-- Tutash hudud yuzasi hisoblash (Google Maps usuli) -->
+ <div class="mb-8 bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Tutash hudud yuzasi (Uzunlik x Kenglik)
+        </h3>
+
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        <strong>Oson hisoblash!</strong> Faqat uzunlik va kenglikni kiriting - yuzasi avtomatik hisoblanadi.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input usuli tanlash -->
+        <div class="mb-6">
+            <div class="flex space-x-4">
+                <label class="flex items-center">
+                    <input type="radio" name="input_method" value="rectangle" checked onchange="switchInputMethod('rectangle')"
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Uzunlik x Kenglik</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="radio" name="input_method" value="coordinates" onchange="switchInputMethod('coordinates')"
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">GPS koordinatalari orqali</span>
+                </label>
+
+            </div>
+        </div>
+
+        <!-- Uzunlik x Kenglik usuli -->
+        <div id="rectangle_method" class="mb-6">
+            <h4 class="text-md font-medium text-gray-800 mb-3">Hududning o'lchamlari:</h4>
+
+            <!-- Visual diagram -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+
+                <div class="flex justify-center" style="padding: 20px">
+                    <div class="relative">
+                        <!-- Rectangle representation -->
+                        <div class="w-32 h-20 border-2 border-blue-500 bg-blue-100 relative">
+                            <!-- Length arrow (top) -->
+                            <div class="absolute -top-6 left-0 right-0 flex items-center justify-center">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-0.5 bg-red-500"></div>
+                                    <div class="flex-1 border-t border-red-500 mx-1"></div>
+                                    <div class="text-xs text-red-600 mx-2" id="length_display">Uzunlik</div>
+                                    <div class="flex-1 border-t border-red-500 mx-1"></div>
+                                    <div class="w-2 h-0.5 bg-red-500"></div>
+                                </div>
+                            </div>
+
+                            <!-- Width arrow (right) -->
+                            <div class="absolute -right-8 top-0 bottom-0 flex items-center justify-center" >
+                                <div class="flex flex-col items-center">
+                                    <div class="w-0.5 h-2 bg-green-500"></div>
+                                    <div class="flex-1 border-l border-green-500 my-1"></div>
+                                    <div class="text-xs text-green-600 mx-2 transform -rotate-90 whitespace-nowrap" id="width_display">Kenglik</div>
+                                    <div class="flex-1 border-l border-green-500 my-1"></div>
+                                    <div class="w-0.5 h-2 bg-green-500"></div>
+                                </div>
+                            </div>
+
+                            <!-- Center text -->
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-xs text-blue-800 font-medium" id="area_display">Hudud</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Uzunlik (m) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" step="0.01" name="area_length" id="area_length" value="0"
+                        oninput="calculateFromRectangle()"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Masalan: 15.0">
+                    <p class="text-xs text-gray-500 mt-1">Hududning eng uzun tomoni</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Kenglik (m) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" step="0.01" name="area_width" id="area_width" value="0"
+                        oninput="calculateFromRectangle()"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Masalan: 8.5">
+                    <p class="text-xs text-gray-500 mt-1">Hududning keng tomoni</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- GPS koordinatalari usuli -->
+        <div id="coordinates_method" class="mb-6 hidden">
+            <h4 class="text-md font-medium text-gray-800 mb-3">GPS koordinatalarini kiriting (kamida 3 ta nuqta):</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div id="coordinate_inputs">
+                    <!-- JavaScript orqali qo'shiladi -->
+                </div>
+                <button type="button" onclick="addCoordinateInput()"
+                    class="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm rounded">
+                    + Nuqta qo'shish
+                </button>
+            </div>
+        </div>
+
+        <!-- Poligon chizish usuli -->
+        <div id="polygon_method" class="mb-6 hidden">
+            <h4 class="text-md font-medium text-gray-800 mb-3">Xaritada poligon chizing:</h4>
+            <p class="text-sm text-gray-600 mb-3">Pastdagi xaritada "Poligon chizish" tugmasini bosib, hududni belgilang</p>
+        </div>
+
+        <!-- Hisoblash natijasi -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-4">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-lg font-medium text-green-800">Avtomatik hisoblash natijasi</h4>
+                <div class="text-sm text-green-600">
+                    <span id="calculation_method">To'rtburchak formulasi</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Natija -->
+                <div>
+                    <div class="text-sm text-green-700 mb-1">Yuzasi</div>
+                    <div id="calculated_area" class="text-3xl font-bold text-green-900 mb-2">0.00 m²</div>
+                    <div class="text-sm text-green-600">
+                        Perimetr: <span id="calculated_perimeter">0.00 m</span>
+                    </div>
+                </div>
+
+                <!-- Formula -->
+                <div class="bg-white rounded-lg p-4 border">
+                    <div class="text-sm font-medium text-gray-800 mb-2">Hisoblash jarayoni:</div>
+                    <div id="calculation_formula" class="text-xs text-gray-600 space-y-1">
+                        Uzunlik va kenglikni kiriting...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden inputs for database -->
+        <input type="hidden" name="calculated_land_area" id="calculated_land_area" value="">
+        <input type="hidden" name="area_calculation_method" id="area_calculation_method" value="">
+
+        <!-- Manual maydon kiritish -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Umumiy maydon (tekshirish uchun) (m²) <span class="text-red-500">*</span>
+            </label>
+            <input type="number" step="0.01" name="total_area" id="total_area" value="" required
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Yuqorida hisoblangan qiymat bilan taqqoslang">
+            <p class="text-xs text-gray-500 mt-1">Bu maydon yuqoridagi avtomatik hisoblash bilan taqqoslash uchun</p>
+        </div>
+    </div>
+
+<script>
+let coordinateIndex = 0;
+
+// Input usulini o'zgartirish
+function switchInputMethod(method) {
+    document.getElementById('rectangle_method').classList.toggle('hidden', method !== 'rectangle');
+    document.getElementById('coordinates_method').classList.toggle('hidden', method !== 'coordinates');
+
+    if (method === 'coordinates' && document.getElementById('coordinate_inputs').children.length === 0) {
+        for (let i = 0; i < 4; i++) addCoordinateInput();
+        calculateFromCoordinates();
+    } else if (method === 'rectangle') {
+        calculateFromRectangle();
+    }
+}
+
+// GPS koordinata input qo'shish
+function addCoordinateInput() {
+    const container = document.getElementById('coordinate_inputs');
+    const inputId = 'coord_' + coordinateIndex;
+
+const inputHtml = `
+    <div id="${inputId}" class="flex items-center space-x-2 mb-2">
+        <div class="w-8 text-sm font-medium text-gray-600">P${coordinateIndex + 1}:</div>
+        <div class="flex-1">
+            <input type="number" step="0.0000001"
+                placeholder="41.3111 (Kenglik)"
+                class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lat "
+                oninput="calculateFromCoordinates()">
+        </div>
+        <div class="flex-1">
+            <input type="number" step="0.0000001"
+                placeholder="69.2797 (Uzunlik)"
+                class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lng"
+                oninput="calculateFromCoordinates()">
+        </div>
+        <button type="button" onclick="removeCoordinateInput('${inputId}')"
+            class="text-red-500 hover:text-red-700 text-sm px-2">×</button>
+    </div>
+`;
+
+
+    container.insertAdjacentHTML('beforeend', inputHtml);
+    coordinateIndex++;
+}
+
+// GPS koordinata input o'chirish
+function removeCoordinateInput(inputId) {
+    document.getElementById(inputId).remove();
+    calculateFromCoordinates();
+}
+
+// Uzunlik x Kenglik orqali hisoblash
+function calculateFromRectangle() {
+    const length = parseFloat(document.getElementById('area_length').value) || 0;
+    const width = parseFloat(document.getElementById('area_width').value) || 0;
+
+    // Update visual display
+    document.getElementById('length_display').textContent = length > 0 ? `${length}m` : 'Uzunlik';
+    document.getElementById('width_display').textContent = width > 0 ? `${width}m` : 'Kenglik';
+
+    if (!length || !width) {
+        displayResult(0, 0, 'Uzunlik va kenglikni kiriting...', 'To\'rtburchak formulasi');
+        document.getElementById('area_display').textContent = 'Hudud';
+        return;
+    }
+
+    // Calculate area and perimeter
+    const area = length * width;
+    const perimeter = 2 * (length + width);
+
+    // Update visual display
+    document.getElementById('area_display').textContent = `${area.toFixed(1)}m²`;
+
+    const formula = `
+        <div><strong>To'rtburchak formulasi:</strong></div>
+        <div>Uzunlik = ${length} m</div>
+        <div>Kenglik = ${width} m</div>
+        <div><strong>Yuzasi = ${length} × ${width} = ${area.toFixed(2)} m²</strong></div>
+        <div><strong>Perimetr = 2 × (${length} + ${width}) = ${perimeter.toFixed(2)} m</strong></div>
+    `;
+
+    displayResult(area, perimeter, formula, 'To\'rtburchak formulasi');
+}
+
+// GPS koordinatalar orqali hisoblash (Shoelace formula)
+function calculateFromCoordinates() {
+    const latInputs = document.querySelectorAll('.coordinate-lat');
+    const lngInputs = document.querySelectorAll('.coordinate-lng');
+
+    const coordinates = [];
+    for (let i = 0; i < latInputs.length; i++) {
+        const lat = parseFloat(latInputs[i].value);
+        const lng = parseFloat(lngInputs[i].value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            coordinates.push([lng, lat]);
+        }
+    }
+
+    if (coordinates.length < 3) {
+        displayResult(0, 0, 'Kamida 3 ta GPS koordinata kiriting...', 'Shoelace formulasi');
+        return;
+    }
+
+    // Local projection: convert to meters relative to first point
+    const lat0 = coordinates[0][1] * Math.PI / 180;
+    const lon0 = coordinates[0][0] * Math.PI / 180;
+    const R = 6371000;
+
+    const projected = coordinates.map(coord => {
+        const lat = coord[1] * Math.PI / 180;
+        const lon = coord[0] * Math.PI / 180;
+        const x = (lon - lon0) * Math.cos((lat + lat0) / 2) * R;
+        const y = (lat - lat0) * R;
+        return [x, y];
+    });
+    projected.push(projected[0]); // polygonni yopish
+
+    // Shoelace formula in meters
+    let area = 0;
+    for (let i = 0; i < projected.length - 1; i++) {
+        const [x1, y1] = projected[i];
+        const [x2, y2] = projected[i + 1];
+        area += (x1 * y2 - x2 * y1);
+    }
+    area = Math.abs(area) / 2;
+
+    // Perimeter (haversine)
+    let perimeter = 0;
+    for (let i = 0; i < coordinates.length; i++) {
+        const lat1 = coordinates[i][1] * Math.PI / 180;
+        const lon1 = coordinates[i][0] * Math.PI / 180;
+        const lat2 = coordinates[(i + 1) % coordinates.length][1] * Math.PI / 180;
+        const lon2 = coordinates[(i + 1) % coordinates.length][0] * Math.PI / 180;
+
+        const dLat = lat2 - lat1;
+        const dLon = lon2 - lon1;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2)**2;
+        perimeter += 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    const formula = `
+        <div><strong>Shoelace formulasi (metrlarda):</strong></div>
+        <div>${coordinates.length} ta nuqta ishlatildi</div>
+        <div>Yuzasi = ${area.toFixed(2)} m²</div>
+    `;
+
+    displayResult(area, perimeter, formula, 'Shoelace formulasi');
+}
+
+// Natijani ko'rsatish
+function displayResult(area, perimeter, formula, method) {
+    document.getElementById('calculated_area').textContent = area > 0 ? `${area.toFixed(2)} m²` : '0.00 m²';
+    document.getElementById('calculated_perimeter').textContent = perimeter > 0 ? `${perimeter.toFixed(2)} m` : '0.00 m';
+    document.getElementById('calculation_formula').innerHTML = formula;
+    document.getElementById('calculation_method').textContent = method;
+
+    document.getElementById('calculated_land_area').value = area.toFixed(2);
+    document.getElementById('area_calculation_method').value = method;
+
+    const totalAreaInput = document.getElementById('total_area');
+    if (area > 0 && !totalAreaInput.value) {
+        totalAreaInput.value = area.toFixed(2);
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    calculateFromRectangle();
+});
+</script>
+
+
+
+            <!-- Other measurements section -->
             <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
-                    Bino o'lchamlari
+                    Qolgan o'lchamlari
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Fasad uzunligi (m) <span class="text-red-500">*</span>
@@ -259,18 +637,6 @@
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('distance_to_sidewalk') border-red-500 @enderror"
                             placeholder="1.2">
                         @error('distance_to_sidewalk')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Umumiy maydon (m²) <span class="text-red-500">*</span>
-                        </label>
-                        <input type="number" step="0.01" name="total_area" value="{{ old('total_area') }}" required
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('total_area') border-red-500 @enderror"
-                            placeholder="100">
-                        @error('total_area')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -373,7 +739,7 @@
                 <div class="mb-4">
                     <label class="flex items-center">
                         <input type="checkbox" name="has_tenant" value="1" {{ old('has_tenant') ? 'checked' : '' }}
-                            onchange="PropertyForm.toggleTenantFields(this)"
+                            onchange="toggleTenantFields(this)"
                             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                         <span class="ml-2 text-sm text-gray-700">Ijarachi mavjud</span>
                     </label>
@@ -541,11 +907,11 @@
                     </div>
 
                     <div class="flex items-end space-x-2">
-                        <button type="button" onclick="PropertyForm.getCurrentLocation()"
+                        <button type="button" onclick="getCurrentLocation()"
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex-1">
                             Joylashuvni aniqlash
                         </button>
-                        <button type="button" onclick="PropertyForm.toggleDrawingMode()" id="drawButton"
+                        <button type="button" onclick="toggleDrawingMode()" id="drawButton"
                                 class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1">
                             Poligon chizish
                         </button>
@@ -586,7 +952,7 @@
                             <label class="block text-sm font-medium text-gray-700">
                                 Rasmlar (kamida 4 ta) <span class="text-red-500">*</span>
                             </label>
-                            <button type="button" onclick="PropertyForm.addImageField()"
+                            <button type="button" onclick="addImageField()"
                                 class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded">
                                 + Qo'shish
                             </button>
@@ -659,36 +1025,6 @@
     <div id="addMahallaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
-                <div class="px-6 py-4 border-b">
-                    <h3 class="text-lg font-medium">Yangi mahalla qo'shish</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <input type="hidden" id="newMahallaDistrictId">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mahalla nomi</label>
-                    <input type="text" id="newMahallaName" class="w-full border border-gray-300 rounded-lg px-3 py-2"
-                        placeholder="Mahalla nomini kiriting">
-                </div>
-                <div class="px-6 py-4 border-t flex justify-end space-x-2">
-                    <button onclick="PropertyForm.hideModal('addMahallaModal')"
-                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
-                        Bekor qilish
-                    </button>
-                    <button onclick="PropertyForm.addNewMahalla()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                        Qo'shish
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Street Modal -->
-    <div id="addStreetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
-                <div class="px-6 py-4 border-b">
-                    <h3 class="text-lg font-medium">Yangi ko'cha qo'shish</h3>
-                </div>
                 <div class="px-6 py-4">
                     <input type="hidden" id="newStreetDistrictId">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Ko'cha nomi</label>
@@ -696,11 +1032,11 @@
                         placeholder="Ko'cha nomini kiriting">
                 </div>
                 <div class="px-6 py-4 border-t flex justify-end space-x-2">
-                    <button onclick="PropertyForm.hideModal('addStreetModal')"
+                    <button onclick="hideModal('addStreetModal')"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
                         Bekor qilish
                     </button>
-                    <button onclick="PropertyForm.addNewStreet()"
+                    <button onclick="addNewStreet()"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                         Qo'shish
                     </button>
@@ -718,622 +1054,191 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 
     <script>
-        // Global namespace to avoid conflicts
-        const PropertyForm = {
-            // Variables
-            propertyMap: null,
-            propertyMarker: null,
-            drawnItems: null,
-            drawControl: null,
-            isDrawingMode: false,
-            imageFieldIndex: 0,
-            totalImages: 0,
-
-            // Tashkent bounds
-            TASHKENT_BOUNDS: {
-                center: [41.2995, 69.2401],
-                bounds: [
-                    [40.9, 68.8], // Southwest
-                    [41.6, 69.8]  // Northeast
-                ]
-            },
-
-            // Initialize everything when DOM is loaded
-            init: function() {
-                console.log('PropertyForm initializing...');
-
-                // Add default image fields
-                for (let i = 0; i < 4; i++) {
-                    this.addImageField();
-                }
-                this.updateImageCounter();
-
-                // Initialize map
-                this.initializeMap();
-
-                // Load locations if district is already selected
-                const districtSelect = document.getElementById('district_id');
-                if (districtSelect && districtSelect.value) {
-                    this.onDistrictChange(districtSelect);
-                }
-
-                console.log('PropertyForm initialized successfully');
-            },
-
-            // Initialize map
-            initializeMap: function() {
-                // Initialize map
-                this.propertyMap = L.map('propertyMap').setView(this.TASHKENT_BOUNDS.center, 12);
-
-                // Define different tile layers
-                const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap contributors'
-                });
-
-                const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    maxZoom: 19,
-                    attribution: '© Esri, Maxar, Earthstar Geographics'
-                });
-
-                const hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    maxZoom: 19,
-                    attribution: '© Esri, Maxar, Earthstar Geographics'
-                });
-
-                const hybridLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-                    maxZoom: 19
-                });
-
-                // Add default layer (OpenStreetMap)
-                satelliteLayer.addTo(this.propertyMap);
-
-                // Create layer control
-                const baseLayers = {
-                    "Oddiy xarita": osmLayer,
-                    "Satellit": satelliteLayer,
-                    "Gibrid": L.layerGroup([satelliteLayer, hybridLabels])
-                };
-
-                // Add layer control to map
-                L.control.layers(baseLayers).addTo(this.propertyMap);
-
-                // Initialize drawn items layer
-                this.drawnItems = new L.FeatureGroup();
-                this.propertyMap.addLayer(this.drawnItems);
-
-                // Initialize draw control
-                this.drawControl = new L.Control.Draw({
-                    position: 'topright',
-                    draw: {
-                        polygon: {
-                            allowIntersection: false,
-                            showArea: true
-                        },
-                        rectangle: false,
-                        circle: false,
-                        circlemarker: false,
-                        marker: false,
-                        polyline: false
-                    },
-                    edit: {
-                        featureGroup: this.drawnItems,
-                        remove: true
-                    }
-                });
-
-                // Map click event for marker placement
-                const self = this;
-                this.propertyMap.on('click', function(e) {
-                    if (!self.isDrawingMode) {
-                        console.log('Map clicked at:', e.latlng.lat, e.latlng.lng);
-                        self.placeMarker(e.latlng.lat, e.latlng.lng);
-                    }
-                });
-
-                // Draw events
-                this.propertyMap.on(L.Draw.Event.CREATED, function(e) {
-                    const layer = e.layer;
-                    self.drawnItems.addLayer(layer);
-
-                    // Save polygon coordinates
-                    if (e.layerType === 'polygon') {
-                        const coords = layer.getLatLngs()[0].map(point => [point.lng, point.lat]);
-                        coords.push(coords[0]); // Close the polygon
-                        document.getElementById('polygon_coordinates').value = JSON.stringify([coords]);
-                    }
-                });
-
-                this.propertyMap.on(L.Draw.Event.EDITED, function(e) {
-                    const layers = e.layers;
-                    layers.eachLayer(function(layer) {
-                        if (layer instanceof L.Polygon) {
-                            const coords = layer.getLatLngs()[0].map(point => [point.lng, point.lat]);
-                            coords.push(coords[0]);
-                            document.getElementById('polygon_coordinates').value = JSON.stringify([coords]);
-                        }
-                    });
-                });
-
-                this.propertyMap.on(L.Draw.Event.DELETED, function(e) {
-                    document.getElementById('polygon_coordinates').value = '';
-                });
-
-                // Don't restrict map bounds for marker placement - only for viewing
-                // this.propertyMap.setMaxBounds(this.TASHKENT_BOUNDS.bounds);
-
-                console.log('Map initialized successfully');
-            },
-
-            // Place marker on map
-            placeMarker: function(lat, lng) {
-                console.log('Placing marker at:', lat, lng);
-
-                // Remove existing marker
-                if (this.propertyMarker) {
-                    this.propertyMap.removeLayer(this.propertyMarker);
-                    console.log('Removed existing marker');
-                }
-
-                // Add new marker - allow placement anywhere, not restricted by bounds
-                this.propertyMarker = L.marker([lat, lng]).addTo(this.propertyMap);
-                console.log('Added new marker at:', lat, lng);
-
-                // Update coordinate inputs
-                document.getElementById('latitude').value = lat.toFixed(8);
-                document.getElementById('longitude').value = lng.toFixed(8);
-
-                console.log('Updated coordinate inputs');
-            },
-
-            // Toggle drawing mode
-            toggleDrawingMode: function() {
-                const button = document.getElementById('drawButton');
-
-                if (!this.isDrawingMode) {
-                    this.propertyMap.addControl(this.drawControl);
-                    button.textContent = 'Chizishni to\'xtatish';
-                    button.className = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex-1';
-                    this.isDrawingMode = true;
-                } else {
-                    this.propertyMap.removeControl(this.drawControl);
-                    button.textContent = 'Poligon chizish';
-                    button.className = 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1';
-                    this.isDrawingMode = false;
-                }
-            },
-
-            // Get current location
-            getCurrentLocation: function() {
-                console.log('Getting current location...');
-
-                if (!this.propertyMap) {
-                    console.log('Map is not initialized!');
-                    alert('Xarita hali yuklanmagan!');
-                    return;
-                }
-
-                if (navigator.geolocation) {
-                    const self = this;
-                    navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-
-                            console.log('Location found:', lat, lng);
-
-                            // Always place marker first
-                            self.placeMarker(lat, lng);
-                            self.propertyMap.setView([lat, lng], 16);
-
-                            // Check if within Tashkent bounds and show appropriate message
-                            const isWithinTashkent = (lat >= self.TASHKENT_BOUNDS.bounds[0][0] && lat <= self.TASHKENT_BOUNDS.bounds[1][0] &&
-                                                    lng >= self.TASHKENT_BOUNDS.bounds[0][1] && lng <= self.TASHKENT_BOUNDS.bounds[1][1]);
-
-                            if (isWithinTashkent) {
-                                alert('Joylashuv muvaffaqiyatli aniqlandi!');
-                            } else {
-                                alert('Joylashuv aniqlandi, lekin Toshkent shahri chegaralaridan tashqarida. Markerni qo\'lda moslashtiring.');
-                            }
-                        },
-                        function(error) {
-                            let errorMessage = 'Joylashuvni aniqlab bo\'lmadi: ';
-                            switch (error.code) {
-                                case error.PERMISSION_DENIED:
-                                    errorMessage += 'Ruxsat berilmagan';
-                                    break;
-                                case error.POSITION_UNAVAILABLE:
-                                    errorMessage += 'Ma\'lumot mavjud emas';
-                                    break;
-                                case error.TIMEOUT:
-                                    errorMessage += 'Vaqt tugadi';
-                                    break;
-                                default:
-                                    errorMessage += 'Noma\'lum xato';
-                                    break;
-                            }
-                            alert(errorMessage);
-                        }
-                    );
-                } else {
-                    alert('Brauzer geolokatsiyani qo\'llab-quvvatlamaydi!');
-                }
-            },
-
-            // District change handler
-            onDistrictChange: function(selectElement) {
-                const districtId = typeof selectElement === 'object' ? selectElement.value : selectElement;
-
-                console.log('District changed to:', districtId);
-
-                if (!districtId) {
-                    this.resetMahallaSelect();
-                    this.resetStreetSelect();
-                    return;
-                }
-
-                this.loadMahallas(districtId);
-                this.loadStreets(districtId);
-            },
-
-            // Mahalla change handler
-            onMahallaChange: function(selectElement) {
-                const mahallaId = typeof selectElement === 'object' ? selectElement.value : selectElement;
-                console.log('Mahalla changed to:', mahallaId);
-            },
-
-            // Street change handler
-            onStreetChange: function(selectElement) {
-                const streetId = typeof selectElement === 'object' ? selectElement.value : selectElement;
-                console.log('Street changed to:', streetId);
-            },
-
-            // Load mahallas
-            loadMahallas: async function(districtId) {
-                const mahallaSelect = document.getElementById('mahalla_id');
-
-                if (!districtId) {
-                    this.resetMahallaSelect();
-                    return;
-                }
-
-                mahallaSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
-                mahallaSelect.disabled = true;
-
-                try {
-                    const response = await fetch(`/api/mahallas?district_id=${districtId}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-
-                    const data = await response.json();
-
-                    mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
-
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(mahalla => {
-                            const option = new Option(mahalla.name, mahalla.id);
-                            mahallaSelect.add(option);
-                        });
-                    }
-
-                    mahallaSelect.disabled = false;
-                } catch (error) {
-                    console.error('Error loading mahallas:', error);
-                    mahallaSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
-                    mahallaSelect.disabled = false;
-                }
-            },
-
-            // Load streets
-            loadStreets: async function(districtId) {
-                const streetSelect = document.getElementById('street_id');
-
-                if (!districtId) {
-                    this.resetStreetSelect();
-                    return;
-                }
-
-                streetSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
-                streetSelect.disabled = true;
-
-                try {
-                    const response = await fetch(`/api/streets?district_id=${districtId}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-
-                    const data = await response.json();
-
-                    streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
-
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(street => {
-                            const option = new Option(street.name, street.id);
-                            streetSelect.add(option);
-                        });
-                    }
-
-                    streetSelect.disabled = false;
-                } catch (error) {
-                    console.error('Error loading streets:', error);
-                    streetSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
-                    streetSelect.disabled = false;
-                }
-            },
-
-            // Reset selects
-            resetMahallaSelect: function() {
-                const mahallaSelect = document.getElementById('mahalla_id');
-                if (mahallaSelect) {
-                    mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
-                    mahallaSelect.disabled = false;
-                }
-            },
-
-            resetStreetSelect: function() {
-                const streetSelect = document.getElementById('street_id');
-                if (streetSelect) {
-                    streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
-                    streetSelect.disabled = false;
-                }
-            },
-
-            // Modal functions
-            showAddMahallaModal: function() {
-                const districtSelect = document.getElementById('district_id');
-                const districtId = districtSelect ? districtSelect.value : null;
-
-                if (!districtId) {
-                    alert('Avval tumanni tanlang!');
-                    return;
-                }
-
-                document.getElementById('newMahallaDistrictId').value = districtId;
-                document.getElementById('addMahallaModal').classList.remove('hidden');
-                document.getElementById('newMahallaName').focus();
-            },
-
-            showAddStreetModal: function() {
-                const districtSelect = document.getElementById('district_id');
-                const districtId = districtSelect ? districtSelect.value : null;
-
-                if (!districtId) {
-                    alert('Avval tumanni tanlang!');
-                    return;
-                }
-
-                document.getElementById('newStreetDistrictId').value = districtId;
-                document.getElementById('addStreetModal').classList.remove('hidden');
-                document.getElementById('newStreetName').focus();
-            },
-
-            hideModal: function(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.add('hidden');
-                    if (modalId === 'addMahallaModal') {
-                        document.getElementById('newMahallaName').value = '';
-                    } else if (modalId === 'addStreetModal') {
-                        document.getElementById('newStreetName').value = '';
-                    }
-                }
-            },
-
-            // Add new mahalla
-            addNewMahalla: async function() {
-                const districtId = document.getElementById('newMahallaDistrictId').value;
-                const name = document.getElementById('newMahallaName').value.trim();
-
-                if (!name) {
-                    alert('Mahalla nomini kiriting!');
-                    return;
-                }
-
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-                try {
-                    const response = await fetch('/api/mahallas', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': token,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: name,
-                            district_id: districtId
-                        })
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success && result.mahalla) {
-                        const select = document.getElementById('mahalla_id');
-                        const option = new Option(result.mahalla.name, result.mahalla.id, true, true);
-                        select.add(option);
-                        this.hideModal('addMahallaModal');
-                        alert('Mahalla muvaffaqiyatli qo\'shildi!');
-                    } else {
-                        alert('Xato: ' + (result.message || 'Noma\'lum xato'));
-                    }
-                } catch (error) {
-                    alert('Xato yuz berdi: ' + error.message);
-                }
-            },
-
-            // Add new street
-            addNewStreet: async function() {
-                const districtId = document.getElementById('newStreetDistrictId').value;
-                const name = document.getElementById('newStreetName').value.trim();
-
-                if (!name) {
-                    alert('Ko\'cha nomini kiriting!');
-                    return;
-                }
-
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-                try {
-                    const response = await fetch('/api/streets', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': token,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: name,
-                            district_id: districtId
-                        })
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success && result.street) {
-                        const select = document.getElementById('street_id');
-                        const option = new Option(result.street.name, result.street.id, true, true);
-                        select.add(option);
-                        this.hideModal('addStreetModal');
-                        alert('Ko\'cha muvaffaqiyatli qo\'shildi!');
-                    } else {
-                        alert('Xato: ' + (result.message || 'Noma\'lum xato'));
-                    }
-                } catch (error) {
-                    alert('Xato yuz berdi: ' + error.message);
-                }
-            },
-
-            // Image field management
-            addImageField: function() {
-                const container = document.getElementById('imageFieldsContainer');
-                const fieldId = 'image_field_' + this.imageFieldIndex;
-
-                const fieldHtml = `
-                    <div id="${fieldId}" class="image-field border border-gray-200 rounded-lg p-3 bg-gray-50">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-sm font-medium text-gray-700">Rasm ${this.imageFieldIndex + 1}</label>
-                            <button type="button" onclick="PropertyForm.removeImageField('${fieldId}')"
-                                    class="text-red-500 hover:text-red-700 text-sm">× O'chirish</button>
-                        </div>
-                        <input type="file" name="images[]" accept="image/*" onchange="PropertyForm.handleImageChange(this, '${fieldId}')"
-                               class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                        <div class="mt-2 text-xs text-gray-500">JPEG, PNG, JPG formatida, maksimal 2MB</div>
-                        <div id="preview_${fieldId}" class="mt-3 hidden">
-                            <img id="img_${fieldId}" src="" alt="Preview" class="w-24 h-24 object-cover rounded border">
-                            <div id="info_${fieldId}" class="text-xs text-gray-500 mt-1"></div>
-                        </div>
-                    </div>
-                `;
-
-                container.insertAdjacentHTML('beforeend', fieldHtml);
-                this.imageFieldIndex++;
-                this.updateImageCounter();
-            },
-
-            removeImageField: function(fieldId) {
-                const field = document.getElementById(fieldId);
-                if (field) {
-                    field.remove();
-                    this.updateImageCounter();
-                    this.renumberImageFields();
-                }
-            },
-
-            renumberImageFields: function() {
-                const fields = document.querySelectorAll('.image-field');
-                fields.forEach((field, index) => {
-                    const label = field.querySelector('label');
-                    if (label) {
-                        label.textContent = `Rasm ${index + 1}`;
-                    }
-                });
-            },
-
-            handleImageChange: function(input, fieldId) {
-                const file = input.files[0];
-                const preview = document.getElementById(`preview_${fieldId}`);
-                const img = document.getElementById(`img_${fieldId}`);
-                const info = document.getElementById(`info_${fieldId}`);
-
-                if (file) {
-                    if (file.size > 2048 * 1024) {
-                        alert('Fayl hajmi 2MB dan oshmasligi kerak!');
-                        input.value = '';
-                        preview.classList.add('hidden');
-                        return;
-                    }
-
-                    if (!file.type.startsWith('image/')) {
-                        alert('Faqat rasm fayllarini tanlang!');
-                        input.value = '';
-                        preview.classList.add('hidden');
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        img.src = e.target.result;
-                        info.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-                        preview.classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(file);
-
-                    input.classList.remove('border-red-500');
-                    input.classList.add('border-green-500');
-                } else {
-                    preview.classList.add('hidden');
-                    input.classList.remove('border-green-500');
-                }
-
-                this.updateImageCounter();
-            },
-
-            updateImageCounter: function() {
-                const counter = document.getElementById('imageCounter');
-                const fields = document.querySelectorAll('.image-field input[type="file"]');
-                let filledFields = 0;
-
-                fields.forEach(input => {
-                    if (input.files.length > 0) {
-                        filledFields++;
-                    }
-                });
-
-                if (counter) {
-                    counter.textContent = `Jami rasmlar: ${filledFields}`;
-                    const counterContainer = counter.parentElement;
-
-                    if (filledFields >= 4) {
-                        counterContainer.className = 'mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm';
-                        counter.className = 'font-medium text-green-700';
-                    } else {
-                        counterContainer.className = 'mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm';
-                        counter.className = 'font-medium text-red-700';
-                    }
-                }
-
-                this.totalImages = filledFields;
-            },
-
-            // Tenant fields toggle
-            toggleTenantFields: function(checkbox) {
-                const tenantFields = document.getElementById('tenantFields');
-                if (tenantFields) {
-                    if (checkbox.checked) {
-                        tenantFields.classList.remove('hidden');
-                    } else {
-                        tenantFields.classList.add('hidden');
-                    }
-                }
-            }
+        // Global variables and functions for area calculation
+        let propertyMap = null;
+        let propertyMarker = null;
+        let drawnItems = null;
+        let drawControl = null;
+        let isDrawingMode = false;
+        let imageFieldIndex = 0;
+        let totalImages = 0;
+
+        // Tashkent bounds
+        const TASHKENT_BOUNDS = {
+            center: [41.2995, 69.2401],
+            bounds: [
+                [40.9, 68.8], // Southwest
+                [41.6, 69.8]  // Northeast
+            ]
         };
 
-        // STIR/PINFL validation functions (outside of PropertyForm object)
+        // AREA CALCULATION FUNCTIONS
+        function calculateAreaPreview(method = 'brahmagupta') {
+            const sideA = parseFloat(document.getElementById('side_a_b').value) || 0;
+            const sideB = parseFloat(document.getElementById('side_b_c').value) || 0;
+            const sideC = parseFloat(document.getElementById('side_c_d').value) || 0;
+            const sideD = parseFloat(document.getElementById('side_d_a').value) || 0;
+
+            const displayElement = document.getElementById('calculated_area_display');
+            const formulaElement = document.getElementById('calculation_formula');
+
+            if (!sideA || !sideB || !sideC || !sideD) {
+                displayElement.textContent = '-- m²';
+                formulaElement.innerHTML = 'Barcha to\'rt tomonni kiriting...';
+                return;
+            }
+
+            // Validate quadrilateral
+            const validation = validateQuadrilateralSides(sideA, sideB, sideC, sideD);
+            if (!validation.valid) {
+                displayElement.textContent = 'Xato!';
+                displayElement.className = 'text-2xl font-bold text-red-900 mb-2';
+                formulaElement.innerHTML = `<span class="text-red-600">${validation.message}</span>`;
+                return;
+            }
+
+            let area, formula;
+
+            if (method === 'rectangle') {
+                // Rectangle approximation method
+                const width = (sideA + sideC) / 2;
+                const length = (sideB + sideD) / 2;
+                area = width * length;
+                formula = `<strong>To'rtburchak yaqinlashuvi:</strong><br>
+                          Kenglik = (${sideA} + ${sideC}) ÷ 2 = ${width.toFixed(2)}m<br>
+                          Uzunlik = (${sideB} + ${sideD}) ÷ 2 = ${length.toFixed(2)}m<br>
+                          <strong>Maydon = ${width.toFixed(2)} × ${length.toFixed(2)} = ${area.toFixed(2)} m²</strong>`;
+            } else {
+                // Brahmagupta's formula (default)
+                const s = (sideA + sideB + sideC + sideD) / 2; // semi-perimeter
+                const area_squared = (s - sideA) * (s - sideB) * (s - sideC) * (s - sideD);
+
+                if (area_squared <= 0) {
+                    displayElement.textContent = 'Xato!';
+                    displayElement.className = 'text-2xl font-bold text-red-900 mb-2';
+                    formulaElement.innerHTML = '<span class="text-red-600">Brahmagupta formulasi ishlamadi. To\'rtburchak yaqinlashuv usulini sinab ko\'ring.</span>';
+                    return;
+                }
+
+                area = Math.sqrt(area_squared);
+                formula = `<strong>Brahmagupta formulasi:</strong><br>
+                          Yarim perimetr: s = (${sideA} + ${sideB} + ${sideC} + ${sideD}) ÷ 2 = ${s.toFixed(2)}m<br>
+                          Maydon = √[(s-a)(s-b)(s-c)(s-d)]<br>
+                          = √[(${s.toFixed(2)}-${sideA})(${s.toFixed(2)}-${sideB})(${s.toFixed(2)}-${sideC})(${s.toFixed(2)}-${sideD})]<br>
+                          = √[${(s-sideA).toFixed(2)} × ${(s-sideB).toFixed(2)} × ${(s-sideC).toFixed(2)} × ${(s-sideD).toFixed(2)}]<br>
+                          <strong>= √${area_squared.toFixed(2)} = ${area.toFixed(2)} m²</strong>`;
+            }
+
+            displayElement.textContent = `${area.toFixed(2)} m²`;
+            displayElement.className = 'text-2xl font-bold text-green-900 mb-2';
+            formulaElement.innerHTML = formula;
+
+            // Visual feedback
+            displayElement.classList.add('animate-pulse');
+            setTimeout(() => {
+                displayElement.classList.remove('animate-pulse');
+            }, 500);
+
+            // Update total_area input if it's empty
+            const totalAreaInput = document.getElementById('total_area');
+            if (totalAreaInput && !totalAreaInput.value) {
+                totalAreaInput.value = area.toFixed(2);
+                totalAreaInput.classList.add('border-green-500');
+                setTimeout(() => {
+                    totalAreaInput.classList.remove('border-green-500');
+                }, 2000);
+            }
+        }
+
+        function validateQuadrilateralSides(a, b, c, d) {
+            if (!a || !b || !c || !d) {
+                return {valid: false, message: 'Barcha to\'rt tomonni kiriting'};
+            }
+
+            // Check if sides can form a quadrilateral using triangle inequality
+            const sides = [a, b, c, d];
+            const perimeter = a + b + c + d;
+
+            // Each side must be less than sum of other three sides
+            for (let i = 0; i < 4; i++) {
+                const otherSidesSum = perimeter - sides[i];
+                if (sides[i] >= otherSidesSum) {
+                    const sideNames = ['A-B', 'B-C', 'C-D', 'D-A'];
+                    return {
+                        valid: false,
+                        message: `${sideNames[i]} tomon (${sides[i]}m) boshqa uch tomonning yig'indisidan (${otherSidesSum.toFixed(2)}m) katta yoki teng bo'lmasligi kerak`
+                    };
+                }
+            }
+
+            return {valid: true, message: 'To\'rtburchak yaratish mumkin'};
+        }
+
+        function showBothCalculations() {
+            const sideA = parseFloat(document.getElementById('side_a_b').value) || 0;
+            const sideB = parseFloat(document.getElementById('side_b_c').value) || 0;
+            const sideC = parseFloat(document.getElementById('side_c_d').value) || 0;
+            const sideD = parseFloat(document.getElementById('side_d_a').value) || 0;
+
+            if (!sideA || !sideB || !sideC || !sideD) {
+                alert('Barcha to\'rt tomonni kiriting!');
+                return;
+            }
+
+            const validation = validateQuadrilateralSides(sideA, sideB, sideC, sideD);
+            if (!validation.valid) {
+                alert(validation.message);
+                return;
+            }
+
+            // Calculate using Brahmagupta's formula
+            const s = (sideA + sideB + sideC + sideD) / 2;
+            const brahmaguptaAreaSquared = (s - sideA) * (s - sideB) * (s - sideC) * (s - sideD);
+
+            // Calculate using rectangle approximation
+            const width = (sideA + sideC) / 2;
+            const length = (sideB + sideD) / 2;
+            const rectangleArea = width * length;
+
+            let message = `MAYDON HISOBLASH USULLARI TAQQOSLASH\n\n`;
+            message += `Kiritilgan qiymatlar:\n`;
+            message += `A-B tomon: ${sideA}m\n`;
+            message += `B-C tomon: ${sideB}m\n`;
+            message += `C-D tomon: ${sideC}m\n`;
+            message += `D-A tomon: ${sideD}m\n\n`;
+
+            if (brahmaguptaAreaSquared > 0) {
+                const brahmaguptaArea = Math.sqrt(brahmaguptaAreaSquared);
+                message += `1. BRAHMAGUPTA FORMULASI:\n`;
+                message += `   Yarim perimetr: s = (${sideA}+${sideB}+${sideC}+${sideD})/2 = ${s.toFixed(2)}m\n`;
+                message += `   Maydon = √[(s-a)(s-b)(s-c)(s-d)]\n`;
+                message += `   = √[(${s.toFixed(2)}-${sideA})(${s.toFixed(2)}-${sideB})(${s.toFixed(2)}-${sideC})(${s.toFixed(2)}-${sideD})]\n`;
+                message += `   = √[${(s-sideA).toFixed(2)} × ${(s-sideB).toFixed(2)} × ${(s-sideC).toFixed(2)} × ${(s-sideD).toFixed(2)}]\n`;
+                message += `   = √${brahmaguptaAreaSquared.toFixed(2)} = ${brahmaguptaArea.toFixed(2)} m²\n\n`;
+
+                message += `2. TO'RTBURCHAK YAQINLASHUVI:\n`;
+                message += `   O'rtacha kenglik = (${sideA}+${sideC})/2 = ${width.toFixed(2)}m\n`;
+                message += `   O'rtacha uzunlik = (${sideB}+${sideD})/2 = ${length.toFixed(2)}m\n`;
+                message += `   Maydon = ${width.toFixed(2)} × ${length.toFixed(2)} = ${rectangleArea.toFixed(2)} m²\n\n`;
+
+                const difference = Math.abs(brahmaguptaArea - rectangleArea);
+                const percentDiff = (difference / brahmaguptaArea * 100).toFixed(2);
+                message += `TAQQOSLASH:\n`;
+                message += `Farq: ${difference.toFixed(2)} m² (${percentDiff}%)\n`;
+                message += `${brahmaguptaArea > rectangleArea ? 'Brahmagupta formulasi katta natija berdi' : 'To\'rtburchak yaqinlashuvi katta natija berdi'}`;
+            } else {
+                message += `1. BRAHMAGUPTA FORMULASI: Ishlamadi (manfiy qiymat)\n\n`;
+                message += `2. TO'RTBURCHAK YAQINLASHUVI:\n`;
+                message += `   O'rtacha kenglik = (${sideA}+${sideC})/2 = ${width.toFixed(2)}m\n`;
+                message += `   O'rtacha uzunlik = (${sideB}+${sideD})/2 = ${length.toFixed(2)}m\n`;
+                message += `   Maydon = ${width.toFixed(2)} × ${length.toFixed(2)} = ${rectangleArea.toFixed(2)} m²\n\n`;
+                message += `Tavsiya: To'rtburchak yaqinlashuvi usulini ishlating.`;
+            }
+
+            alert(message);
+        }
+
+        // STIR/PINFL validation functions
         async function validateOwnerStirPinfl() {
             const stirPinfl = document.getElementById('owner_stir_pinfl').value.trim();
             const resultDiv = document.getElementById('owner_validation_result');
@@ -1424,7 +1329,7 @@
             });
 
             // Images validation
-            if (PropertyForm.totalImages < 4) {
+            if (totalImages < 4) {
                 alert('Kamida 4 ta rasm yuklang!');
                 isValid = false;
             }
@@ -1441,20 +1346,254 @@
 
         // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Global DOM loaded, setting up...');
-
-            // Wait a bit for other scripts to load
-            setTimeout(function() {
-                PropertyForm.init();
-            }, 100);
+            console.log('DOM loaded, initializing form...');
+            initializeForm();
         });
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                PropertyForm.hideModal('addMahallaModal');
-                PropertyForm.hideModal('addStreetModal');
+        function initializeForm() {
+            // Add default image fields
+            for (let i = 0; i < 4; i++) {
+                addImageField();
             }
-        });
+            updateImageCounter();
+
+            // Initialize map
+            initializeMap();
+        }
+
+        // Initialize map
+        function initializeMap() {
+            propertyMap = L.map('propertyMap').setView(TASHKENT_BOUNDS.center, 12);
+
+            const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19,
+                attribution: '© Esri, Maxar, Earthstar Geographics'
+            });
+
+            satelliteLayer.addTo(propertyMap);
+
+            // Initialize drawn items layer
+            drawnItems = new L.FeatureGroup();
+            propertyMap.addLayer(drawnItems);
+
+            // Initialize draw control
+            drawControl = new L.Control.Draw({
+                position: 'topright',
+                draw: {
+                    polygon: {
+                        allowIntersection: false,
+                        showArea: true
+                    },
+                    rectangle: false,
+                    circle: false,
+                    circlemarker: false,
+                    marker: false,
+                    polyline: false
+                },
+                edit: {
+                    featureGroup: drawnItems,
+                    remove: true
+                }
+            });
+
+            // Map click event for marker placement
+            propertyMap.on('click', function(e) {
+                if (!isDrawingMode) {
+                    placeMarker(e.latlng.lat, e.latlng.lng);
+                }
+            });
+
+
+
+
+        }
+
+        function placeMarker(lat, lng) {
+            if (propertyMarker) {
+                propertyMap.removeLayer(propertyMarker);
+            }
+
+            propertyMarker = L.marker([lat, lng]).addTo(propertyMap);
+
+            document.getElementById('latitude').value = lat.toFixed(8);
+            document.getElementById('longitude').value = lng.toFixed(8);
+        }
+
+        function toggleDrawingMode() {
+            const button = document.getElementById('drawButton');
+
+            if (!isDrawingMode) {
+                propertyMap.addControl(drawControl);
+                button.textContent = 'Chizishni to\'xtatish';
+                button.className = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex-1';
+                isDrawingMode = true;
+            } else {
+                propertyMap.removeControl(drawControl);
+                button.textContent = 'Poligon chizish';
+                button.className = 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1';
+                isDrawingMode = false;
+            }
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        placeMarker(lat, lng);
+                        propertyMap.setView([lat, lng], 16);
+
+                        alert('Joylashuv muvaffaqiyatli aniqlandi!');
+                    },
+                    function(error) {
+                        alert('Joylashuvni aniqlab bo\'lmadi');
+                    }
+                );
+            } else {
+                alert('Brauzer geolokatsiyani qo\'llab-quvvatlamaydi!');
+            }
+        }
+
+        // Image field management
+        function addImageField() {
+            const container = document.getElementById('imageFieldsContainer');
+            const fieldId = 'image_field_' + imageFieldIndex;
+
+            const fieldHtml = `
+                <div id="${fieldId}" class="image-field border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-medium text-gray-700">Rasm ${imageFieldIndex + 1}</label>
+                        <button type="button" onclick="removeImageField('${fieldId}')"
+                                class="text-red-500 hover:text-red-700 text-sm">× O'chirish</button>
+                    </div>
+                    <input type="file" name="images[]" accept="image/*" onchange="handleImageChange(this, '${fieldId}')"
+                           class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                    <div class="mt-2 text-xs text-gray-500">JPEG, PNG, JPG formatida, maksimal 2MB</div>
+                    <div id="preview_${fieldId}" class="mt-3 hidden">
+                        <img id="img_${fieldId}" src="" alt="Preview" class="w-24 h-24 object-cover rounded border">
+                        <div id="info_${fieldId}" class="text-xs text-gray-500 mt-1"></div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', fieldHtml);
+            imageFieldIndex++;
+            updateImageCounter();
+        }
+
+        function removeImageField(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.remove();
+                updateImageCounter();
+                renumberImageFields();
+            }
+        }
+
+        function renumberImageFields() {
+            const fields = document.querySelectorAll('.image-field');
+            fields.forEach((field, index) => {
+                const label = field.querySelector('label');
+                if (label) {
+                    label.textContent = `Rasm ${index + 1}`;
+                }
+            });
+        }
+
+        function handleImageChange(input, fieldId) {
+            const file = input.files[0];
+            const preview = document.getElementById(`preview_${fieldId}`);
+            const img = document.getElementById(`img_${fieldId}`);
+            const info = document.getElementById(`info_${fieldId}`);
+
+            if (file) {
+                if (file.size > 2048 * 1024) {
+                    alert('Fayl hajmi 2MB dan oshmasligi kerak!');
+                    input.value = '';
+                    preview.classList.add('hidden');
+                    return;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    alert('Faqat rasm fayllarini tanlang!');
+                    input.value = '';
+                    preview.classList.add('hidden');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    info.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+
+                input.classList.remove('border-red-500');
+                input.classList.add('border-green-500');
+            } else {
+                preview.classList.add('hidden');
+                input.classList.remove('border-green-500');
+            }
+
+            updateImageCounter();
+        }
+
+        function updateImageCounter() {
+            const counter = document.getElementById('imageCounter');
+            const fields = document.querySelectorAll('.image-field input[type="file"]');
+            let filledFields = 0;
+
+            fields.forEach(input => {
+                if (input.files.length > 0) {
+                    filledFields++;
+                }
+            });
+
+            if (counter) {
+                counter.textContent = `Jami rasmlar: ${filledFields}`;
+                const counterContainer = counter.parentElement;
+
+                if (filledFields >= 4) {
+                    counterContainer.className = 'mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm';
+                    counter.className = 'font-medium text-green-700';
+                } else {
+                    counterContainer.className = 'mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm';
+                    counter.className = 'font-medium text-red-700';
+                }
+            }
+
+            totalImages = filledFields;
+        }
+
+        function toggleTenantFields(checkbox) {
+            const tenantFields = document.getElementById('tenantFields');
+            if (tenantFields) {
+                if (checkbox.checked) {
+                    tenantFields.classList.remove('hidden');
+                } else {
+                    tenantFields.classList.add('hidden');
+                }
+            }
+        }
+
+        // Modal functions
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+                if (modalId === 'addMahallaModal') {
+                    document.getElementById('newMahallaName').value = '';
+                } else if (modalId === 'addStreetModal') {
+                    document.getElementById('newStreetName').value = '';
+                }
+            }
+        }
+
+        // Other helper functions would go here...
+        // (District/Mahalla/Street loading functions, etc.)
+
     </script>
 @endsection
