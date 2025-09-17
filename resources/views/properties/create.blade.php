@@ -65,32 +65,6 @@
     @enderror
 </div>
 
-<script>
-document.getElementById("building_cadastr_number").addEventListener("input", function (e) {
-    let value = e.target.value;
-
-    // remove all colons first
-    value = value.replace(/:/g, "");
-
-    // split into first 6 parts (max 5 colons)
-    let parts = [];
-    let rest = value;
-
-    for (let i = 0; i < 5 && rest.length > 0; i++) {
-        // take up to 2–3 digits before each colon, or leave it free
-        parts.push(rest.substring(0, 2));
-        rest = rest.substring(2);
-    }
-
-    // push whatever is left (can be long, with /, etc.)
-    if (rest.length > 0) {
-        parts.push(rest);
-    }
-
-    // join with colons
-    e.target.value = parts.join(":");
-});
-</script>
 
 
 
@@ -270,7 +244,7 @@ document.getElementById("building_cadastr_number").addEventListener("input", fun
                         class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                     <span class="ml-2 text-sm text-gray-700">Uzunlik x Kenglik</span>
                 </label>
-                <label class="flex items-center">
+                <label class="flex items-center" style="display: none !important">
                     <input type="radio" name="input_method" value="coordinates" onchange="switchInputMethod('coordinates')"
                         class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                     <span class="ml-2 text-sm text-gray-700">GPS koordinatalari orqali</span>
@@ -1054,315 +1028,60 @@ document.addEventListener('DOMContentLoaded', function() {
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 
     <script>
-        // Global variables and functions for area calculation
-        let propertyMap = null;
-        let propertyMarker = null;
-        let drawnItems = null;
-        let drawControl = null;
-        let isDrawingMode = false;
-        let imageFieldIndex = 0;
-        let totalImages = 0;
+// Fixed JavaScript - All errors corrected
+(function() {
+    'use strict';
 
-        // Tashkent bounds
-        const TASHKENT_BOUNDS = {
-            center: [41.2995, 69.2401],
-            bounds: [
-                [40.9, 68.8], // Southwest
-                [41.6, 69.8]  // Northeast
-            ]
-        };
+    // Global variables
+    let propertyMap = null;
+    let propertyMarker = null;
+    let drawnItems = null;
+    let drawControl = null;
+    let isDrawingMode = false;
+    let imageFieldIndex = 0;
+    let totalImages = 0;
+    let coordinateIndex = 0;
 
-        // AREA CALCULATION FUNCTIONS
-        function calculateAreaPreview(method = 'brahmagupta') {
-            const sideA = parseFloat(document.getElementById('side_a_b').value) || 0;
-            const sideB = parseFloat(document.getElementById('side_b_c').value) || 0;
-            const sideC = parseFloat(document.getElementById('side_c_d').value) || 0;
-            const sideD = parseFloat(document.getElementById('side_d_a').value) || 0;
+    // Tashkent bounds
+    const TASHKENT_BOUNDS = {
+        center: [41.2995, 69.2401],
+        bounds: [
+            [40.9, 68.8], // Southwest
+            [41.6, 69.8]  // Northeast
+        ]
+    };
 
-            const displayElement = document.getElementById('calculated_area_display');
-            const formulaElement = document.getElementById('calculation_formula');
+    // PropertyForm object
+    window.PropertyForm = {
+        // Initialize everything
+        init: function() {
+            console.log('PropertyForm initializing...');
 
-            if (!sideA || !sideB || !sideC || !sideD) {
-                displayElement.textContent = '-- m²';
-                formulaElement.innerHTML = 'Barcha to\'rt tomonni kiriting...';
-                return;
-            }
-
-            // Validate quadrilateral
-            const validation = validateQuadrilateralSides(sideA, sideB, sideC, sideD);
-            if (!validation.valid) {
-                displayElement.textContent = 'Xato!';
-                displayElement.className = 'text-2xl font-bold text-red-900 mb-2';
-                formulaElement.innerHTML = `<span class="text-red-600">${validation.message}</span>`;
-                return;
-            }
-
-            let area, formula;
-
-            if (method === 'rectangle') {
-                // Rectangle approximation method
-                const width = (sideA + sideC) / 2;
-                const length = (sideB + sideD) / 2;
-                area = width * length;
-                formula = `<strong>To'rtburchak yaqinlashuvi:</strong><br>
-                          Kenglik = (${sideA} + ${sideC}) ÷ 2 = ${width.toFixed(2)}m<br>
-                          Uzunlik = (${sideB} + ${sideD}) ÷ 2 = ${length.toFixed(2)}m<br>
-                          <strong>Maydon = ${width.toFixed(2)} × ${length.toFixed(2)} = ${area.toFixed(2)} m²</strong>`;
-            } else {
-                // Brahmagupta's formula (default)
-                const s = (sideA + sideB + sideC + sideD) / 2; // semi-perimeter
-                const area_squared = (s - sideA) * (s - sideB) * (s - sideC) * (s - sideD);
-
-                if (area_squared <= 0) {
-                    displayElement.textContent = 'Xato!';
-                    displayElement.className = 'text-2xl font-bold text-red-900 mb-2';
-                    formulaElement.innerHTML = '<span class="text-red-600">Brahmagupta formulasi ishlamadi. To\'rtburchak yaqinlashuv usulini sinab ko\'ring.</span>';
-                    return;
-                }
-
-                area = Math.sqrt(area_squared);
-                formula = `<strong>Brahmagupta formulasi:</strong><br>
-                          Yarim perimetr: s = (${sideA} + ${sideB} + ${sideC} + ${sideD}) ÷ 2 = ${s.toFixed(2)}m<br>
-                          Maydon = √[(s-a)(s-b)(s-c)(s-d)]<br>
-                          = √[(${s.toFixed(2)}-${sideA})(${s.toFixed(2)}-${sideB})(${s.toFixed(2)}-${sideC})(${s.toFixed(2)}-${sideD})]<br>
-                          = √[${(s-sideA).toFixed(2)} × ${(s-sideB).toFixed(2)} × ${(s-sideC).toFixed(2)} × ${(s-sideD).toFixed(2)}]<br>
-                          <strong>= √${area_squared.toFixed(2)} = ${area.toFixed(2)} m²</strong>`;
-            }
-
-            displayElement.textContent = `${area.toFixed(2)} m²`;
-            displayElement.className = 'text-2xl font-bold text-green-900 mb-2';
-            formulaElement.innerHTML = formula;
-
-            // Visual feedback
-            displayElement.classList.add('animate-pulse');
-            setTimeout(() => {
-                displayElement.classList.remove('animate-pulse');
-            }, 500);
-
-            // Update total_area input if it's empty
-            const totalAreaInput = document.getElementById('total_area');
-            if (totalAreaInput && !totalAreaInput.value) {
-                totalAreaInput.value = area.toFixed(2);
-                totalAreaInput.classList.add('border-green-500');
-                setTimeout(() => {
-                    totalAreaInput.classList.remove('border-green-500');
-                }, 2000);
-            }
-        }
-
-        function validateQuadrilateralSides(a, b, c, d) {
-            if (!a || !b || !c || !d) {
-                return {valid: false, message: 'Barcha to\'rt tomonni kiriting'};
-            }
-
-            // Check if sides can form a quadrilateral using triangle inequality
-            const sides = [a, b, c, d];
-            const perimeter = a + b + c + d;
-
-            // Each side must be less than sum of other three sides
-            for (let i = 0; i < 4; i++) {
-                const otherSidesSum = perimeter - sides[i];
-                if (sides[i] >= otherSidesSum) {
-                    const sideNames = ['A-B', 'B-C', 'C-D', 'D-A'];
-                    return {
-                        valid: false,
-                        message: `${sideNames[i]} tomon (${sides[i]}m) boshqa uch tomonning yig'indisidan (${otherSidesSum.toFixed(2)}m) katta yoki teng bo'lmasligi kerak`
-                    };
-                }
-            }
-
-            return {valid: true, message: 'To\'rtburchak yaratish mumkin'};
-        }
-
-        function showBothCalculations() {
-            const sideA = parseFloat(document.getElementById('side_a_b').value) || 0;
-            const sideB = parseFloat(document.getElementById('side_b_c').value) || 0;
-            const sideC = parseFloat(document.getElementById('side_c_d').value) || 0;
-            const sideD = parseFloat(document.getElementById('side_d_a').value) || 0;
-
-            if (!sideA || !sideB || !sideC || !sideD) {
-                alert('Barcha to\'rt tomonni kiriting!');
-                return;
-            }
-
-            const validation = validateQuadrilateralSides(sideA, sideB, sideC, sideD);
-            if (!validation.valid) {
-                alert(validation.message);
-                return;
-            }
-
-            // Calculate using Brahmagupta's formula
-            const s = (sideA + sideB + sideC + sideD) / 2;
-            const brahmaguptaAreaSquared = (s - sideA) * (s - sideB) * (s - sideC) * (s - sideD);
-
-            // Calculate using rectangle approximation
-            const width = (sideA + sideC) / 2;
-            const length = (sideB + sideD) / 2;
-            const rectangleArea = width * length;
-
-            let message = `MAYDON HISOBLASH USULLARI TAQQOSLASH\n\n`;
-            message += `Kiritilgan qiymatlar:\n`;
-            message += `A-B tomon: ${sideA}m\n`;
-            message += `B-C tomon: ${sideB}m\n`;
-            message += `C-D tomon: ${sideC}m\n`;
-            message += `D-A tomon: ${sideD}m\n\n`;
-
-            if (brahmaguptaAreaSquared > 0) {
-                const brahmaguptaArea = Math.sqrt(brahmaguptaAreaSquared);
-                message += `1. BRAHMAGUPTA FORMULASI:\n`;
-                message += `   Yarim perimetr: s = (${sideA}+${sideB}+${sideC}+${sideD})/2 = ${s.toFixed(2)}m\n`;
-                message += `   Maydon = √[(s-a)(s-b)(s-c)(s-d)]\n`;
-                message += `   = √[(${s.toFixed(2)}-${sideA})(${s.toFixed(2)}-${sideB})(${s.toFixed(2)}-${sideC})(${s.toFixed(2)}-${sideD})]\n`;
-                message += `   = √[${(s-sideA).toFixed(2)} × ${(s-sideB).toFixed(2)} × ${(s-sideC).toFixed(2)} × ${(s-sideD).toFixed(2)}]\n`;
-                message += `   = √${brahmaguptaAreaSquared.toFixed(2)} = ${brahmaguptaArea.toFixed(2)} m²\n\n`;
-
-                message += `2. TO'RTBURCHAK YAQINLASHUVI:\n`;
-                message += `   O'rtacha kenglik = (${sideA}+${sideC})/2 = ${width.toFixed(2)}m\n`;
-                message += `   O'rtacha uzunlik = (${sideB}+${sideD})/2 = ${length.toFixed(2)}m\n`;
-                message += `   Maydon = ${width.toFixed(2)} × ${length.toFixed(2)} = ${rectangleArea.toFixed(2)} m²\n\n`;
-
-                const difference = Math.abs(brahmaguptaArea - rectangleArea);
-                const percentDiff = (difference / brahmaguptaArea * 100).toFixed(2);
-                message += `TAQQOSLASH:\n`;
-                message += `Farq: ${difference.toFixed(2)} m² (${percentDiff}%)\n`;
-                message += `${brahmaguptaArea > rectangleArea ? 'Brahmagupta formulasi katta natija berdi' : 'To\'rtburchak yaqinlashuvi katta natija berdi'}`;
-            } else {
-                message += `1. BRAHMAGUPTA FORMULASI: Ishlamadi (manfiy qiymat)\n\n`;
-                message += `2. TO'RTBURCHAK YAQINLASHUVI:\n`;
-                message += `   O'rtacha kenglik = (${sideA}+${sideC})/2 = ${width.toFixed(2)}m\n`;
-                message += `   O'rtacha uzunlik = (${sideB}+${sideD})/2 = ${length.toFixed(2)}m\n`;
-                message += `   Maydon = ${width.toFixed(2)} × ${length.toFixed(2)} = ${rectangleArea.toFixed(2)} m²\n\n`;
-                message += `Tavsiya: To'rtburchak yaqinlashuvi usulini ishlating.`;
-            }
-
-            alert(message);
-        }
-
-        // STIR/PINFL validation functions
-        async function validateOwnerStirPinfl() {
-            const stirPinfl = document.getElementById('owner_stir_pinfl').value.trim();
-            const resultDiv = document.getElementById('owner_validation_result');
-            const nameInput = document.getElementById('owner_name');
-
-            if (!stirPinfl) {
-                resultDiv.innerHTML = '<span class="text-red-600">STIR/PINFL ni kiriting</span>';
-                return;
-            }
-
-            resultDiv.innerHTML = '<span class="text-blue-600">Tekshirilmoqda...</span>';
-
-            try {
-                const response = await fetch('/api/validate-stir-pinfl', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ stir_pinfl: stirPinfl })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    resultDiv.innerHTML = `<span class="text-green-600">✓ Tasdiqlandi: ${result.name}</span>`;
-                    if (result.name && nameInput) {
-                        nameInput.value = result.name;
-                    }
-                } else {
-                    resultDiv.innerHTML = `<span class="text-red-600">✗ Xato: ${result.error}</span>`;
-                }
-            } catch (error) {
-                resultDiv.innerHTML = '<span class="text-red-600">✗ Serverda xato yuz berdi</span>';
-            }
-        }
-
-        async function validateTenantStirPinfl() {
-            const stirPinfl = document.getElementById('tenant_stir_pinfl').value.trim();
-            const resultDiv = document.getElementById('tenant_validation_result');
-            const nameInput = document.getElementById('tenant_name');
-
-            if (!stirPinfl) {
-                resultDiv.innerHTML = '<span class="text-red-600">STIR/PINFL ni kiriting</span>';
-                return;
-            }
-
-            resultDiv.innerHTML = '<span class="text-blue-600">Tekshirilmoqda...</span>';
-
-            try {
-                const response = await fetch('/api/validate-stir-pinfl', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ stir_pinfl: stirPinfl })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    resultDiv.innerHTML = `<span class="text-green-600">✓ Tasdiqlandi: ${result.name}</span>`;
-                    if (result.name && nameInput) {
-                        nameInput.value = result.name;
-                    }
-                } else {
-                    resultDiv.innerHTML = `<span class="text-red-600">✗ Xato: ${result.error}</span>`;
-                }
-            } catch (error) {
-                resultDiv.innerHTML = '<span class="text-red-600">✗ Serverda xato yuz berdi</span>';
-            }
-        }
-
-        // Form validation
-        function validateForm() {
-            let isValid = true;
-
-            // Required fields validation
-            const requiredFields = document.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('border-red-500');
-                    isValid = false;
-                } else {
-                    field.classList.remove('border-red-500');
-                }
-            });
-
-            // Images validation
-            if (totalImages < 4) {
-                alert('Kamida 4 ta rasm yuklang!');
-                isValid = false;
-            }
-
-            // Adjacent facilities validation
-            const adjacentFacilities = document.querySelectorAll('input[name="adjacent_facilities[]"]:checked');
-            if (adjacentFacilities.length === 0) {
-                alert('Tutash hududdagi qurilmalardan kamida bittasini tanlang!');
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-        // Initialize everything when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing form...');
-            initializeForm();
-        });
-
-        function initializeForm() {
             // Add default image fields
             for (let i = 0; i < 4; i++) {
-                addImageField();
+                this.addImageField();
             }
-            updateImageCounter();
+            this.updateImageCounter();
 
             // Initialize map
-            initializeMap();
-        }
+            this.initializeMap();
+
+            // Load locations if district is already selected
+            const districtSelect = document.getElementById('district_id');
+            if (districtSelect && districtSelect.value) {
+                this.onDistrictChange(districtSelect);
+            }
+
+            console.log('PropertyForm initialized successfully');
+        },
 
         // Initialize map
-        function initializeMap() {
+        initializeMap: function() {
+            if (typeof L === 'undefined') {
+                console.error('Leaflet is not loaded');
+                return;
+            }
+
             propertyMap = L.map('propertyMap').setView(TASHKENT_BOUNDS.center, 12);
 
             const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -1376,75 +1095,91 @@ document.addEventListener('DOMContentLoaded', function() {
             drawnItems = new L.FeatureGroup();
             propertyMap.addLayer(drawnItems);
 
-            // Initialize draw control
-            drawControl = new L.Control.Draw({
-                position: 'topright',
-                draw: {
-                    polygon: {
-                        allowIntersection: false,
-                        showArea: true
-                    },
-                    rectangle: false,
-                    circle: false,
-                    circlemarker: false,
-                    marker: false,
-                    polyline: false
-                },
-                edit: {
-                    featureGroup: drawnItems,
-                    remove: true
-                }
-            });
-
             // Map click event for marker placement
+            const self = this;
             propertyMap.on('click', function(e) {
                 if (!isDrawingMode) {
-                    placeMarker(e.latlng.lat, e.latlng.lng);
+                    self.placeMarker(e.latlng.lat, e.latlng.lng);
                 }
             });
 
+            console.log('Map initialized successfully');
+        },
 
-
-
-        }
-
-        function placeMarker(lat, lng) {
+        // Place marker on map
+        placeMarker: function(lat, lng) {
+            // Remove existing marker
             if (propertyMarker) {
                 propertyMap.removeLayer(propertyMarker);
             }
 
+            // Add new marker
             propertyMarker = L.marker([lat, lng]).addTo(propertyMap);
 
-            document.getElementById('latitude').value = lat.toFixed(8);
-            document.getElementById('longitude').value = lng.toFixed(8);
-        }
+            // Update coordinate inputs
+            const latInput = document.getElementById('latitude');
+            const lngInput = document.getElementById('longitude');
 
-        function toggleDrawingMode() {
+            if (latInput) latInput.value = lat.toFixed(8);
+            if (lngInput) lngInput.value = lng.toFixed(8);
+        },
+
+        // Toggle drawing mode
+        toggleDrawingMode: function() {
             const button = document.getElementById('drawButton');
+            if (!button) return;
 
             if (!isDrawingMode) {
-                propertyMap.addControl(drawControl);
+                if (typeof L !== 'undefined' && L.Control && L.Control.Draw) {
+                    drawControl = new L.Control.Draw({
+                        position: 'topright',
+                        draw: {
+                            polygon: {
+                                allowIntersection: false,
+                                showArea: true
+                            },
+                            rectangle: false,
+                            circle: false,
+                            circlemarker: false,
+                            marker: false,
+                            polyline: false
+                        },
+                        edit: {
+                            featureGroup: drawnItems,
+                            remove: true
+                        }
+                    });
+                    propertyMap.addControl(drawControl);
+                }
                 button.textContent = 'Chizishni to\'xtatish';
                 button.className = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex-1';
                 isDrawingMode = true;
             } else {
-                propertyMap.removeControl(drawControl);
+                if (drawControl) {
+                    propertyMap.removeControl(drawControl);
+                }
                 button.textContent = 'Poligon chizish';
                 button.className = 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1';
                 isDrawingMode = false;
             }
-        }
+        },
 
-        function getCurrentLocation() {
+        // Get current location
+        getCurrentLocation: function() {
+            if (!propertyMap) {
+                alert('Xarita hali yuklanmagan!');
+                return;
+            }
+
             if (navigator.geolocation) {
+                const self = this;
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
 
-                        placeMarker(lat, lng);
+                        self.placeMarker(lat, lng);
                         propertyMap.setView([lat, lng], 16);
-
                         alert('Joylashuv muvaffaqiyatli aniqlandi!');
                     },
                     function(error) {
@@ -1454,21 +1189,299 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 alert('Brauzer geolokatsiyani qo\'llab-quvvatlamaydi!');
             }
-        }
+        },
+
+        // District change handler
+        onDistrictChange: function(selectElement) {
+            const districtId = typeof selectElement === 'object' ? selectElement.value : selectElement;
+
+            if (!districtId) {
+                this.resetMahallaSelect();
+                this.resetStreetSelect();
+                return;
+            }
+
+            this.loadMahallas(districtId);
+            this.loadStreets(districtId);
+        },
+
+        // Mahalla change handler
+        onMahallaChange: function(selectElement) {
+            const mahallaId = typeof selectElement === 'object' ? selectElement.value : selectElement;
+            console.log('Mahalla changed to:', mahallaId);
+        },
+
+        // Street change handler
+        onStreetChange: function(selectElement) {
+            const streetId = typeof selectElement === 'object' ? selectElement.value : selectElement;
+            console.log('Street changed to:', streetId);
+        },
+
+        // Load mahallas
+        loadMahallas: async function(districtId) {
+            const mahallaSelect = document.getElementById('mahalla_id');
+            if (!mahallaSelect) return;
+
+            mahallaSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
+            mahallaSelect.disabled = true;
+
+            try {
+                const response = await fetch(`/api/mahallas?district_id=${districtId}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
+
+                if (Array.isArray(data) && data.length > 0) {
+                    data.forEach(mahalla => {
+                        const option = new Option(mahalla.name, mahalla.id);
+                        mahallaSelect.add(option);
+                    });
+                }
+
+                mahallaSelect.disabled = false;
+            } catch (error) {
+                console.error('Error loading mahallas:', error);
+                mahallaSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
+                mahallaSelect.disabled = false;
+            }
+        },
+
+        // Load streets
+        loadStreets: async function(districtId) {
+            const streetSelect = document.getElementById('street_id');
+            if (!streetSelect) return;
+
+            streetSelect.innerHTML = '<option value="">Yuklanmoqda...</option>';
+            streetSelect.disabled = true;
+
+            try {
+                const response = await fetch(`/api/streets?district_id=${districtId}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+
+                if (Array.isArray(data) && data.length > 0) {
+                    data.forEach(street => {
+                        const option = new Option(street.name, street.id);
+                        streetSelect.add(option);
+                    });
+                }
+
+                streetSelect.disabled = false;
+            } catch (error) {
+                console.error('Error loading streets:', error);
+                streetSelect.innerHTML = '<option value="">Xato! Qayta urinib ko\'ring</option>';
+                streetSelect.disabled = false;
+            }
+        },
+
+        // Reset selects
+        resetMahallaSelect: function() {
+            const mahallaSelect = document.getElementById('mahalla_id');
+            if (mahallaSelect) {
+                mahallaSelect.innerHTML = '<option value="">Mahallani tanlang yoki yarating</option>';
+                mahallaSelect.disabled = false;
+            }
+        },
+
+        resetStreetSelect: function() {
+            const streetSelect = document.getElementById('street_id');
+            if (streetSelect) {
+                streetSelect.innerHTML = '<option value="">Ko\'chani tanlang yoki yarating</option>';
+                streetSelect.disabled = false;
+            }
+        },
+
+        // Modal functions
+        showAddMahallaModal: function() {
+            const districtSelect = document.getElementById('district_id');
+            const districtId = districtSelect ? districtSelect.value : null;
+
+            if (!districtId) {
+                alert('Avval tumanni tanlang!');
+                return;
+            }
+
+            const districtIdInput = document.getElementById('newMahallaDistrictId');
+            const modal = document.getElementById('addMahallaModal');
+            const nameInput = document.getElementById('newMahallaName');
+
+            if (districtIdInput) districtIdInput.value = districtId;
+            if (modal) modal.classList.remove('hidden');
+            if (nameInput) nameInput.focus();
+        },
+
+        showAddStreetModal: function() {
+            const districtSelect = document.getElementById('district_id');
+            const districtId = districtSelect ? districtSelect.value : null;
+
+            if (!districtId) {
+                alert('Avval tumanni tanlang!');
+                return;
+            }
+
+            const districtIdInput = document.getElementById('newStreetDistrictId');
+            const modal = document.getElementById('addStreetModal');
+            const nameInput = document.getElementById('newStreetName');
+
+            if (districtIdInput) districtIdInput.value = districtId;
+            if (modal) modal.classList.remove('hidden');
+            if (nameInput) nameInput.focus();
+        },
+
+        hideModal: function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+                if (modalId === 'addMahallaModal') {
+                    const nameInput = document.getElementById('newMahallaName');
+                    if (nameInput) nameInput.value = '';
+                } else if (modalId === 'addStreetModal') {
+                    const nameInput = document.getElementById('newStreetName');
+                    if (nameInput) nameInput.value = '';
+                }
+            }
+        },
+
+        // Add new mahalla
+        addNewMahalla: async function() {
+            const districtIdInput = document.getElementById('newMahallaDistrictId');
+            const nameInput = document.getElementById('newMahallaName');
+
+            if (!districtIdInput || !nameInput) return;
+
+            const districtId = districtIdInput.value;
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('Mahalla nomini kiriting!');
+                return;
+            }
+
+            const tokenElement = document.querySelector('meta[name="csrf-token"]');
+            if (!tokenElement) {
+                alert('CSRF token topilmadi!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/mahallas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': tokenElement.getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        district_id: districtId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.mahalla) {
+                    const select = document.getElementById('mahalla_id');
+                    if (select) {
+                        const option = new Option(result.mahalla.name, result.mahalla.id, true, true);
+                        select.add(option);
+                    }
+                    this.hideModal('addMahallaModal');
+                    alert('Mahalla muvaffaqiyatli qo\'shildi!');
+                } else {
+                    alert('Xato: ' + (result.message || 'Noma\'lum xato'));
+                }
+            } catch (error) {
+                alert('Xato yuz berdi: ' + error.message);
+            }
+        },
+
+        // Add new street
+        addNewStreet: async function() {
+            const districtIdInput = document.getElementById('newStreetDistrictId');
+            const nameInput = document.getElementById('newStreetName');
+
+            if (!districtIdInput || !nameInput) return;
+
+            const districtId = districtIdInput.value;
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('Ko\'cha nomini kiriting!');
+                return;
+            }
+
+            const tokenElement = document.querySelector('meta[name="csrf-token"]');
+            if (!tokenElement) {
+                alert('CSRF token topilmadi!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/streets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': tokenElement.getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        district_id: districtId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.street) {
+                    const select = document.getElementById('street_id');
+                    if (select) {
+                        const option = new Option(result.street.name, result.street.id, true, true);
+                        select.add(option);
+                    }
+                    this.hideModal('addStreetModal');
+                    alert('Ko\'cha muvaffaqiyatli qo\'shildi!');
+                } else {
+                    alert('Xato: ' + (result.message || 'Noma\'lum xato'));
+                }
+            } catch (error) {
+                alert('Xato yuz berdi: ' + error.message);
+            }
+        },
 
         // Image field management
-        function addImageField() {
+        addImageField: function() {
             const container = document.getElementById('imageFieldsContainer');
+            if (!container) return;
+
             const fieldId = 'image_field_' + imageFieldIndex;
 
             const fieldHtml = `
                 <div id="${fieldId}" class="image-field border border-gray-200 rounded-lg p-3 bg-gray-50">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-sm font-medium text-gray-700">Rasm ${imageFieldIndex + 1}</label>
-                        <button type="button" onclick="removeImageField('${fieldId}')"
+                        <button type="button" onclick="PropertyForm.removeImageField('${fieldId}')"
                                 class="text-red-500 hover:text-red-700 text-sm">× O'chirish</button>
                     </div>
-                    <input type="file" name="images[]" accept="image/*" onchange="handleImageChange(this, '${fieldId}')"
+                    <input type="file" name="images[]" accept="image/*" onchange="PropertyForm.handleImageChange(this, '${fieldId}')"
                            class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
                     <div class="mt-2 text-xs text-gray-500">JPEG, PNG, JPG formatida, maksimal 2MB</div>
                     <div id="preview_${fieldId}" class="mt-3 hidden">
@@ -1480,19 +1493,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             container.insertAdjacentHTML('beforeend', fieldHtml);
             imageFieldIndex++;
-            updateImageCounter();
-        }
+            this.updateImageCounter();
+        },
 
-        function removeImageField(fieldId) {
+        removeImageField: function(fieldId) {
             const field = document.getElementById(fieldId);
             if (field) {
                 field.remove();
-                updateImageCounter();
-                renumberImageFields();
+                this.updateImageCounter();
+                this.renumberImageFields();
             }
-        }
+        },
 
-        function renumberImageFields() {
+        renumberImageFields: function() {
             const fields = document.querySelectorAll('.image-field');
             fields.forEach((field, index) => {
                 const label = field.querySelector('label');
@@ -1500,9 +1513,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     label.textContent = `Rasm ${index + 1}`;
                 }
             });
-        }
+        },
 
-        function handleImageChange(input, fieldId) {
+        handleImageChange: function(input, fieldId) {
             const file = input.files[0];
             const preview = document.getElementById(`preview_${fieldId}`);
             const img = document.getElementById(`img_${fieldId}`);
@@ -1512,36 +1525,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (file.size > 2048 * 1024) {
                     alert('Fayl hajmi 2MB dan oshmasligi kerak!');
                     input.value = '';
-                    preview.classList.add('hidden');
+                    if (preview) preview.classList.add('hidden');
                     return;
                 }
 
                 if (!file.type.startsWith('image/')) {
                     alert('Faqat rasm fayllarini tanlang!');
                     input.value = '';
-                    preview.classList.add('hidden');
+                    if (preview) preview.classList.add('hidden');
                     return;
                 }
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    img.src = e.target.result;
-                    info.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-                    preview.classList.remove('hidden');
+                    if (img) img.src = e.target.result;
+                    if (info) info.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                    if (preview) preview.classList.remove('hidden');
                 };
                 reader.readAsDataURL(file);
 
                 input.classList.remove('border-red-500');
                 input.classList.add('border-green-500');
             } else {
-                preview.classList.add('hidden');
+                if (preview) preview.classList.add('hidden');
                 input.classList.remove('border-green-500');
             }
 
-            updateImageCounter();
-        }
+            this.updateImageCounter();
+        },
 
-        function updateImageCounter() {
+        updateImageCounter: function() {
             const counter = document.getElementById('imageCounter');
             const fields = document.querySelectorAll('.image-field input[type="file"]');
             let filledFields = 0;
@@ -1566,9 +1579,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             totalImages = filledFields;
-        }
+        },
 
-        function toggleTenantFields(checkbox) {
+        // Tenant fields toggle
+        toggleTenantFields: function(checkbox) {
             const tenantFields = document.getElementById('tenantFields');
             if (tenantFields) {
                 if (checkbox.checked) {
@@ -1578,22 +1592,410 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+    };
 
-        // Modal functions
-        function hideModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.add('hidden');
-                if (modalId === 'addMahallaModal') {
-                    document.getElementById('newMahallaName').value = '';
-                } else if (modalId === 'addStreetModal') {
-                    document.getElementById('newStreetName').value = '';
-                }
+    // Area calculation functions
+    window.switchInputMethod = function(method) {
+        const rectangleMethod = document.getElementById('rectangle_method');
+        const coordinatesMethod = document.getElementById('coordinates_method');
+
+        if (rectangleMethod) {
+            rectangleMethod.classList.toggle('hidden', method !== 'rectangle');
+        }
+        if (coordinatesMethod) {
+            coordinatesMethod.classList.toggle('hidden', method !== 'coordinates');
+        }
+
+        if (method === 'coordinates') {
+            const coordinateInputs = document.getElementById('coordinate_inputs');
+            if (coordinateInputs && coordinateInputs.children.length === 0) {
+                for (let i = 0; i < 4; i++) window.addCoordinateInput();
+                window.calculateFromCoordinates();
+            }
+        } else if (method === 'rectangle') {
+            window.calculateFromRectangle();
+        }
+    };
+
+    window.addCoordinateInput = function() {
+        const container = document.getElementById('coordinate_inputs');
+        if (!container) return;
+
+        const inputId = 'coord_' + coordinateIndex;
+
+        const inputHtml = `
+            <div id="${inputId}" class="flex items-center space-x-2 mb-2">
+                <div class="w-8 text-sm font-medium text-gray-600">P${coordinateIndex + 1}:</div>
+                <div class="flex-1">
+                    <input type="number" step="0.0000001"
+                        placeholder="41.3111 (Kenglik)"
+                        class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lat"
+                        oninput="calculateFromCoordinates()">
+                </div>
+                <div class="flex-1">
+                    <input type="number" step="0.0000001"
+                        placeholder="69.2797 (Uzunlik)"
+                        class="w-full border border-gray-300 rounded px-2 py-1 text-sm coordinate-lng"
+                        oninput="calculateFromCoordinates()">
+                </div>
+                <button type="button" onclick="removeCoordinateInput('${inputId}')"
+                    class="text-red-500 hover:text-red-700 text-sm px-2">×</button>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', inputHtml);
+        coordinateIndex++;
+    };
+
+    window.removeCoordinateInput = function(inputId) {
+        const element = document.getElementById(inputId);
+        if (element) {
+            element.remove();
+            window.calculateFromCoordinates();
+        }
+    };
+
+    window.calculateFromRectangle = function() {
+        const lengthInput = document.getElementById('area_length');
+        const widthInput = document.getElementById('area_width');
+
+        const length = lengthInput ? parseFloat(lengthInput.value) || 0 : 0;
+        const width = widthInput ? parseFloat(widthInput.value) || 0 : 0;
+
+        // Update visual display
+        const lengthDisplay = document.getElementById('length_display');
+        const widthDisplay = document.getElementById('width_display');
+        const areaDisplay = document.getElementById('area_display');
+
+        if (lengthDisplay) lengthDisplay.textContent = length > 0 ? `${length}m` : 'Uzunlik';
+        if (widthDisplay) widthDisplay.textContent = width > 0 ? `${width}m` : 'Kenglik';
+
+        if (!length || !width) {
+            window.displayResult(0, 0, 'Uzunlik va kenglikni kiriting...', 'To\'rtburchak formulasi');
+            if (areaDisplay) areaDisplay.textContent = 'Hudud';
+            return;
+        }
+
+        // Calculate area and perimeter
+        const area = length * width;
+        const perimeter = 2 * (length + width);
+
+        // Update visual display
+        if (areaDisplay) areaDisplay.textContent = `${area.toFixed(1)}m²`;
+
+        const formula = `
+            <div><strong>To'rtburchak formulasi:</strong></div>
+            <div>Uzunlik = ${length} m</div>
+            <div>Kenglik = ${width} m</div>
+            <div><strong>Yuzasi = ${length} × ${width} = ${area.toFixed(2)} m²</strong></div>
+            <div><strong>Perimetr = 2 × (${length} + ${width}) = ${perimeter.toFixed(2)} m</strong></div>
+        `;
+
+        window.displayResult(area, perimeter, formula, 'To\'rtburchak formulasi');
+    };
+
+    window.calculateFromCoordinates = function() {
+        const latInputs = document.querySelectorAll('.coordinate-lat');
+        const lngInputs = document.querySelectorAll('.coordinate-lng');
+
+        const coordinates = [];
+        for (let i = 0; i < latInputs.length; i++) {
+            const lat = parseFloat(latInputs[i].value);
+            const lng = parseFloat(lngInputs[i].value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                coordinates.push([lng, lat]);
             }
         }
 
-        // Other helper functions would go here...
-        // (District/Mahalla/Street loading functions, etc.)
+        if (coordinates.length < 3) {
+            window.displayResult(0, 0, 'Kamida 3 ta GPS koordinata kiriting...', 'Shoelace formulasi');
+            return;
+        }
 
-    </script>
+        // Local projection: convert to meters relative to first point
+        const lat0 = coordinates[0][1] * Math.PI / 180;
+        const lon0 = coordinates[0][0] * Math.PI / 180;
+        const R = 6371000;
+
+        const projected = coordinates.map(coord => {
+            const lat = coord[1] * Math.PI / 180;
+            const lon = coord[0] * Math.PI / 180;
+            const x = (lon - lon0) * Math.cos((lat + lat0) / 2) * R;
+            const y = (lat - lat0) * R;
+            return [x, y];
+        });
+        projected.push(projected[0]); // Close polygon
+
+        // Shoelace formula in meters
+        let area = 0;
+        for (let i = 0; i < projected.length - 1; i++) {
+            const [x1, y1] = projected[i];
+            const [x2, y2] = projected[i + 1];
+            area += (x1 * y2 - x2 * y1);
+        }
+        area = Math.abs(area) / 2;
+
+        // Perimeter (haversine)
+        let perimeter = 0;
+        for (let i = 0; i < coordinates.length; i++) {
+            const lat1 = coordinates[i][1] * Math.PI / 180;
+            const lon1 = coordinates[i][0] * Math.PI / 180;
+            const lat2 = coordinates[(i + 1) % coordinates.length][1] * Math.PI / 180;
+            const lon2 = coordinates[(i + 1) % coordinates.length][0] * Math.PI / 180;
+
+            const dLat = lat2 - lat1;
+            const dLon = lon2 - lon1;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2)**2;
+            perimeter += 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        const formula = `
+            <div><strong>Shoelace formulasi (metrlarda):</strong></div>
+            <div>${coordinates.length} ta nuqta ishlatildi</div>
+            <div>Yuzasi = ${area.toFixed(2)} m²</div>
+        `;
+
+        window.displayResult(area, perimeter, formula, 'Shoelace formulasi');
+    };
+
+    window.displayResult = function(area, perimeter, formula, method) {
+        const calculatedArea = document.getElementById('calculated_area');
+        const calculatedPerimeter = document.getElementById('calculated_perimeter');
+        const calculationFormula = document.getElementById('calculation_formula');
+        const calculationMethod = document.getElementById('calculation_method');
+
+        if (calculatedArea) calculatedArea.textContent = area > 0 ? `${area.toFixed(2)} m²` : '0.00 m²';
+        if (calculatedPerimeter) calculatedPerimeter.textContent = perimeter > 0 ? `${perimeter.toFixed(2)} m` : '0.00 m';
+        if (calculationFormula) calculationFormula.innerHTML = formula;
+        if (calculationMethod) calculationMethod.textContent = method;
+
+        const calculatedLandArea = document.getElementById('calculated_land_area');
+        const areaCalculationMethod = document.getElementById('area_calculation_method');
+
+        if (calculatedLandArea) calculatedLandArea.value = area.toFixed(2);
+        if (areaCalculationMethod) areaCalculationMethod.value = method;
+
+        const totalAreaInput = document.getElementById('total_area');
+        if (area > 0 && totalAreaInput && !totalAreaInput.value) {
+            totalAreaInput.value = area.toFixed(2);
+        }
+    };
+
+    // STIR/PINFL validation functions
+    window.validateOwnerStirPinfl = async function() {
+        const stirPinflInput = document.getElementById('owner_stir_pinfl');
+        const resultDiv = document.getElementById('owner_validation_result');
+        const nameInput = document.getElementById('owner_name');
+
+        if (!stirPinflInput || !resultDiv) return;
+
+        const stirPinfl = stirPinflInput.value.trim();
+
+        if (!stirPinfl) {
+            resultDiv.innerHTML = '<span class="text-red-600">STIR/PINFL ni kiriting</span>';
+            return;
+        }
+
+        resultDiv.innerHTML = '<span class="text-blue-600">Tekshirilmoqda...</span>';
+
+        try {
+            const tokenElement = document.querySelector('meta[name="csrf-token"]');
+            if (!tokenElement) {
+                throw new Error('CSRF token topilmadi');
+            }
+
+            const response = await fetch('/api/validate-stir-pinfl', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': tokenElement.getAttribute('content')
+                },
+                body: JSON.stringify({ stir_pinfl: stirPinfl })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                resultDiv.innerHTML = `<span class="text-green-600">✓ Tasdiqlandi: ${result.name}</span>`;
+                if (result.name && nameInput) {
+                    nameInput.value = result.name;
+                }
+            } else {
+                resultDiv.innerHTML = `<span class="text-red-600">✗ Xato: ${result.error}</span>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<span class="text-red-600">✗ Serverda xato yuz berdi</span>';
+        }
+    };
+
+    window.validateTenantStirPinfl = async function() {
+        const stirPinflInput = document.getElementById('tenant_stir_pinfl');
+        const resultDiv = document.getElementById('tenant_validation_result');
+        const nameInput = document.getElementById('tenant_name');
+
+        if (!stirPinflInput || !resultDiv) return;
+
+        const stirPinfl = stirPinflInput.value.trim();
+
+        if (!stirPinfl) {
+            resultDiv.innerHTML = '<span class="text-red-600">STIR/PINFL ni kiriting</span>';
+            return;
+        }
+
+        resultDiv.innerHTML = '<span class="text-blue-600">Tekshirilmoqda...</span>';
+
+        try {
+            const tokenElement = document.querySelector('meta[name="csrf-token"]');
+            if (!tokenElement) {
+                throw new Error('CSRF token topilmadi');
+            }
+
+            const response = await fetch('/api/validate-stir-pinfl', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': tokenElement.getAttribute('content')
+                },
+                body: JSON.stringify({ stir_pinfl: stirPinfl })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                resultDiv.innerHTML = `<span class="text-green-600">✓ Tasdiqlandi: ${result.name}</span>`;
+                if (result.name && nameInput) {
+                    nameInput.value = result.name;
+                }
+            } else {
+                resultDiv.innerHTML = `<span class="text-red-600">✗ Xato: ${result.error}</span>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<span class="text-red-600">✗ Serverda xato yuz berdi</span>';
+        }
+    };
+
+    // Form validation
+    window.validateForm = function() {
+        let isValid = true;
+
+        // Required fields validation
+        const requiredFields = document.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+
+        // Images validation
+        if (totalImages < 4) {
+            alert('Kamida 4 ta rasm yuklang!');
+            isValid = false;
+        }
+
+        // Adjacent facilities validation
+        const adjacentFacilities = document.querySelectorAll('input[name="adjacent_facilities[]"]:checked');
+        if (adjacentFacilities.length === 0) {
+            alert('Tutash hududdagi qurilmalardan kamida bittasini tanlang!');
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
+    // Global function wrappers for onclick handlers
+    window.toggleDrawingMode = function() {
+        PropertyForm.toggleDrawingMode();
+    };
+
+    window.getCurrentLocation = function() {
+        PropertyForm.getCurrentLocation();
+    };
+
+    window.addImageField = function() {
+        PropertyForm.addImageField();
+    };
+
+    window.toggleTenantFields = function(checkbox) {
+        PropertyForm.toggleTenantFields(checkbox);
+    };
+
+    window.hideModal = function(modalId) {
+        PropertyForm.hideModal(modalId);
+    };
+
+    window.addNewMahalla = function() {
+        PropertyForm.addNewMahalla();
+    };
+
+    window.addNewStreet = function() {
+        PropertyForm.addNewStreet();
+    };
+
+    // Cadastral number formatting
+    function formatCadastralNumber() {
+        const cadastralInput = document.getElementById("building_cadastr_number");
+        if (!cadastralInput) return;
+
+        cadastralInput.addEventListener("input", function (e) {
+            let value = e.target.value;
+
+            // Remove all colons first
+            value = value.replace(/:/g, "");
+
+            // Split into first 6 parts (max 5 colons)
+            let parts = [];
+            let rest = value;
+
+            for (let i = 0; i < 5 && rest.length > 0; i++) {
+                // Take up to 2 digits before each colon
+                parts.push(rest.substring(0, 2));
+                rest = rest.substring(2);
+            }
+
+            // Push whatever is left (can be long, with /, etc.)
+            if (rest.length > 0) {
+                parts.push(rest);
+            }
+
+            // Join with colons
+            e.target.value = parts.join(":");
+        });
+    }
+
+    // Initialize everything when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing...');
+
+        // Wait for other scripts to load
+        setTimeout(function() {
+            try {
+                // Initialize PropertyForm
+                PropertyForm.init();
+
+                // Initialize area calculation
+                window.calculateFromRectangle();
+
+                // Format cadastral number
+                formatCadastralNumber();
+
+                console.log('All initialization completed successfully');
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        }, 100);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            PropertyForm.hideModal('addMahallaModal');
+            PropertyForm.hideModal('addStreetModal');
+        }
+    });
+
+})();
+</script>
 @endsection
