@@ -85,9 +85,9 @@
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Korxona nomi / F.I.SH <span class="text-red-500">*</span>
+                            Korxona nomi / F.I.SH <span class="text-red-500">* (STIR/PINFL yordamida Tekshirish tugmasini bosib to'ldiring)</span>
                         </label>
-                        <input type="text" name="owner_name" id="owner_name" value="{{ old('owner_name') }}" required
+                        <input type="text" name="owner_name" id="owner_name" value="{{ old('owner_name') }}" readonly disabled required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('owner_name') border-red-500 @enderror">
                         @error('owner_name')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -255,7 +255,7 @@
                                 class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                             <span class="ml-2 text-sm text-gray-700">Uzunlik x Kenglik</span>
                         </label>
-                        <label class="flex items-center">
+                        <label class="flex items-center" style="display: none !important;">
                             <input type="radio" name="input_method" value="coordinates"
                                 {{ old('input_method') == 'coordinates' ? 'checked' : '' }}
                                 onchange="switchInputMethod('coordinates')"
@@ -403,11 +403,11 @@
 
                 <!-- Manual area input -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Umumiy maydon (tekshirish uchun) (m²) <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-700 mb-2"">
+                        Umumiy maydon (tekshirish uchun) (m²) <span class="text-red-500">* (Uzunlik/Kenglik yordamida shakillanadi)</span>
                     </label>
-                    <input type="number" step="0.01" name="total_area" id="total_area"
-                        value="{{ old('total_area') }}" required
+                    <input type="number" name="total_area" id="total_area"
+                        value="{{ old('total_area') }}"  required
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('total_area') border-red-500 @enderror"
                         placeholder="Yuqorida hisoblangan qiymat bilan taqqoslang">
                     <p class="text-xs text-gray-500 mt-1">Bu maydon yuqoridagi avtomatik hisoblash bilan taqqoslash uchun</p>
@@ -599,7 +599,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Ijarachi nomi / F.I.SH
+                            Ijarachi nomi / F.I.SH (Uzunlik/Kenglik yordamida shakillanadi)
                         </label>
                         <input type="text" name="tenant_name" id="tenant_name" value="{{ old('tenant_name') }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('tenant_name') border-red-500 @enderror">

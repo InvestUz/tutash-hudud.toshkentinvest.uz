@@ -149,7 +149,7 @@ class PropertyController extends Controller
 
             // Files
             'images' => 'required|array|min:4',
-            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:5120',
             'act_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
             'design_code_file' => 'nullable|file|mimes:pdf,doc,docx,dwg,zip|max:10240'
         ];
