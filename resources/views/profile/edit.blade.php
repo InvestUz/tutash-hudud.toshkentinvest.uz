@@ -49,6 +49,62 @@
                     <input type="text" value="{{ ucfirst(str_replace('_', ' ', $user->role)) }}" readonly
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
                 </div>
+
+                <!-- Password Section -->
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-t pt-4">Parol sozlamalari</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="current_password" class="block text-sm font-medium text-gray-700 mb-2">
+                                Joriy parol
+                            </label>
+                            @if(auth()->user()->role === 'super_admin')
+                                <input type="password" id="current_password" name="current_password"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            @else
+                                <input type="password" value="********" readonly
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
+                                <p class="text-sm text-gray-500 mt-1">Faqat super admin parolni o'zgartira oladi</p>
+                            @endif
+                            @error('current_password')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                Yangi parol
+                            </label>
+                            @if(auth()->user()->role === 'super_admin')
+                                <input type="password" id="password" name="password"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            @else
+                                <input type="password" value="********" readonly
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
+                            @endif
+                            @error('password')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                                Parolni tasdiqlash
+                            </label>
+                            @if(auth()->user()->role === 'super_admin')
+                                <input type="password" id="password_confirmation" name="password_confirmation"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            @else
+                                <input type="password" value="********" readonly
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
+                            @endif
+                            @error('password_confirmation')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="flex justify-end mt-6">
@@ -62,6 +118,12 @@
     @if (session('status') === 'profile-updated')
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
             Profil muvaffaqiyatli yangilandi!
+        </div>
+    @endif
+
+    @if (session('status') === 'password-updated')
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            Parol muvaffaqiyatli yangilandi!
         </div>
     @endif
 </div>

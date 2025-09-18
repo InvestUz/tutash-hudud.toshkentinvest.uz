@@ -52,7 +52,8 @@
 
                 <div class="flex items-center space-x-4">
                     @auth
-                        <span class="text-white">{{ auth()->user()->name }}</span>
+
+                        <a href="{{route('profile.edit')}}" class="text-white">{{ auth()->user()->name }}</a>
                         @if (auth()->user()->district)
                             <span class="text-blue-200 text-sm">({{ auth()->user()->district->name }})</span>
                         @endif
