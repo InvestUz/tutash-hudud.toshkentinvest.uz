@@ -352,7 +352,7 @@
                     </div>
 
                     <!-- Images Gallery -->
-                   @if($property->images_exist->count() > 0)
+                 @if($property->images_exist->count() > 0)
     <div class="bg-white shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
             <h2 class="text-lg font-medium text-gray-900 flex items-center">
@@ -365,13 +365,13 @@
         <div class="px-6 py-4">
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 @foreach($property->images_exist as $index => $image)
-                    <div class="relative group">
+                    <div class="relative group cursor-pointer image-thumbnail" data-index="{{ $index }}">
                         <img src="{{ asset('storage/' . $image) }}"
                              alt="Property Image {{ $index + 1 }}"
-                             class="h-24 w-full object-cover rounded-lg cursor-pointer transition-transform duration-200 group-hover:scale-105"
-                             onclick="openModal({{ $index }})"
-                             loading="lazy">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
+                             class="h-24 w-full object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
+                             loading="lazy"
+                             data-full-src="{{ asset('storage/' . $image) }}">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center pointer-events-none">
                             <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
                             </svg>
@@ -383,96 +383,276 @@
     </div>
 
     <!-- Modal -->
-    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center" onclick="closeModal()">
-        <div class="relative max-w-4xl max-h-screen mx-4" onclick="event.stopPropagation()">
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden">
+        <div class="absolute inset-0 flex items-center justify-center p-4">
             <!-- Close button -->
-            <button onclick="closeModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 z-60">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button id="closeBtn" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full p-2 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
 
             <!-- Previous button -->
-            <button onclick="previousImage()" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all">
+            <button id="prevBtn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all z-10">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
             </button>
 
             <!-- Next button -->
-            <button onclick="nextImage()" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all">
+            <button id="nextBtn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all z-10">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
 
-            <!-- Image -->
-            <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg">
+            <!-- Image container -->
+            <div class="relative max-w-full max-h-full flex items-center justify-center">
+                <img id="modalImage"
+                     src=""
+                     alt="Property Image"
+                     class="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                     style="max-height: 90vh; max-width: 90vw;">
 
-            <!-- Image counter -->
-            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-                <span id="currentImageIndex">1</span> / <span id="totalImages">{{ $property->images_exist->count() }}</span>
+                <!-- Image counter -->
+                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-75 text-white px-4 py-2 rounded-full text-sm font-medium">
+                    <span id="currentImageIndex">1</span> / <span id="totalImages">{{ $property->images_exist->count() }}</span>
+                </div>
             </div>
         </div>
+
+        <!-- Background overlay (clickable to close) -->
+        <div class="absolute inset-0" id="modalOverlay"></div>
     </div>
 
-    <style>
-        .modal {
-            backdrop-filter: blur(8px);
-        }
-    </style>
-
     <script>
-        // Store images array
-        const images = [
-            @foreach($property->images_exist as $image)
-                "{{ asset('storage/' . $image) }}",
-            @endforeach
-        ];
+        console.log('Gallery script starting...');
 
-        let currentImageIndex = 0;
+        // Gallery class for better organization
+        class ImageGallery {
+            constructor() {
+                console.log('Initializing ImageGallery...');
+                this.images = [];
+                this.currentIndex = 0;
+                this.isOpen = false;
 
-        function openModal(index) {
-            currentImageIndex = index;
-            updateModalImage();
-            document.getElementById('imageModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        }
+                this.init();
+            }
 
-        function closeModal() {
-            document.getElementById('imageModal').classList.add('hidden');
-            document.body.style.overflow = 'auto'; // Restore scrolling
-        }
+            init() {
+                try {
+                    // Collect all images
+                    const thumbnails = document.querySelectorAll('.image-thumbnail img');
+                    console.log('Found thumbnails:', thumbnails.length);
 
-        function nextImage() {
-            currentImageIndex = (currentImageIndex + 1) % images.length;
-            updateModalImage();
-        }
+                    thumbnails.forEach((img, index) => {
+                        const fullSrc = img.getAttribute('data-full-src') || img.src;
+                        this.images.push(fullSrc);
+                        console.log(`Image ${index}:`, fullSrc);
+                    });
 
-        function previousImage() {
-            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
-            updateModalImage();
-        }
+                    console.log('Total images loaded:', this.images.length);
 
-        function updateModalImage() {
-            document.getElementById('modalImage').src = images[currentImageIndex];
-            document.getElementById('currentImageIndex').textContent = currentImageIndex + 1;
-        }
+                    // Get DOM elements
+                    this.modal = document.getElementById('imageModal');
+                    this.modalImage = document.getElementById('modalImage');
+                    this.currentIndexEl = document.getElementById('currentImageIndex');
+                    this.totalImagesEl = document.getElementById('totalImages');
 
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (!document.getElementById('imageModal').classList.contains('hidden')) {
-                if (e.key === 'Escape') {
-                    closeModal();
-                } else if (e.key === 'ArrowRight') {
-                    nextImage();
-                } else if (e.key === 'ArrowLeft') {
-                    previousImage();
+                    console.log('Modal elements found:', {
+                        modal: !!this.modal,
+                        modalImage: !!this.modalImage,
+                        currentIndexEl: !!this.currentIndexEl,
+                        totalImagesEl: !!this.totalImagesEl
+                    });
+
+                    if (!this.modal || !this.modalImage) {
+                        console.error('Required modal elements not found!');
+                        return;
+                    }
+
+                    this.bindEvents();
+                    console.log('Gallery initialized successfully');
+
+                } catch (error) {
+                    console.error('Error initializing gallery:', error);
                 }
             }
-        });
+
+            bindEvents() {
+                console.log('Binding events...');
+
+                // Thumbnail clicks
+                document.querySelectorAll('.image-thumbnail').forEach((thumbnail, index) => {
+                    thumbnail.addEventListener('click', (e) => {
+                        console.log('Thumbnail clicked:', index);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.openModal(index);
+                    });
+                });
+
+                // Modal controls
+                const closeBtn = document.getElementById('closeBtn');
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                const overlay = document.getElementById('modalOverlay');
+
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', (e) => {
+                        console.log('Close button clicked');
+                        e.stopPropagation();
+                        this.closeModal();
+                    });
+                }
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', (e) => {
+                        console.log('Previous button clicked');
+                        e.stopPropagation();
+                        this.previousImage();
+                    });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', (e) => {
+                        console.log('Next button clicked');
+                        e.stopPropagation();
+                        this.nextImage();
+                    });
+                }
+
+                if (overlay) {
+                    overlay.addEventListener('click', () => {
+                        console.log('Overlay clicked');
+                        this.closeModal();
+                    });
+                }
+
+                // Keyboard events
+                document.addEventListener('keydown', (e) => {
+                    if (!this.isOpen) return;
+
+                    console.log('Key pressed:', e.key);
+
+                    switch(e.key) {
+                        case 'Escape':
+                            this.closeModal();
+                            break;
+                        case 'ArrowLeft':
+                            this.previousImage();
+                            break;
+                        case 'ArrowRight':
+                            this.nextImage();
+                            break;
+                    }
+                });
+
+                console.log('Events bound successfully');
+            }
+
+            openModal(index) {
+                console.log('Opening modal with index:', index);
+
+                if (index < 0 || index >= this.images.length) {
+                    console.error('Invalid image index:', index);
+                    return;
+                }
+
+                this.currentIndex = index;
+                this.isOpen = true;
+
+                this.updateImage();
+                this.modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+
+                console.log('Modal opened successfully');
+            }
+
+            closeModal() {
+                console.log('Closing modal');
+
+                this.isOpen = false;
+                this.modal.classList.add('hidden');
+                document.body.style.overflow = '';
+
+                console.log('Modal closed successfully');
+            }
+
+            nextImage() {
+                if (!this.isOpen) return;
+
+                this.currentIndex = (this.currentIndex + 1) % this.images.length;
+                console.log('Next image:', this.currentIndex);
+                this.updateImage();
+            }
+
+            previousImage() {
+                if (!this.isOpen) return;
+
+                this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+                console.log('Previous image:', this.currentIndex);
+                this.updateImage();
+            }
+
+            updateImage() {
+                console.log('Updating image to index:', this.currentIndex);
+
+                if (this.currentIndex < 0 || this.currentIndex >= this.images.length) {
+                    console.error('Invalid current index:', this.currentIndex);
+                    return;
+                }
+
+                const imageUrl = this.images[this.currentIndex];
+                console.log('Loading image:', imageUrl);
+
+                this.modalImage.src = imageUrl;
+
+                if (this.currentIndexEl) {
+                    this.currentIndexEl.textContent = this.currentIndex + 1;
+                }
+
+                console.log('Image updated successfully');
+            }
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM loaded, initializing gallery...');
+                window.imageGallery = new ImageGallery();
+            });
+        } else {
+            console.log('DOM already loaded, initializing gallery...');
+            window.imageGallery = new ImageGallery();
+        }
+
+        console.log('Gallery script loaded');
     </script>
-@endif
+
+    <style>
+        #imageModal {
+            backdrop-filter: blur(8px);
+        }
+
+        .image-thumbnail {
+            user-select: none;
+        }
+
+        .image-thumbnail:active {
+            transform: scale(0.98);
+        }
+
+        #modalImage {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Ensure modal is above everything */
+        #imageModal {
+            z-index: 9999 !important;
+        }
+    </style>
+@endif`
                 </div>
 
                 <!-- Sidebar -->
