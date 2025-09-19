@@ -352,38 +352,127 @@
                     </div>
 
                     <!-- Images Gallery -->
-                    @if($property->images_exist->count() > 0)
-                        <div class="bg-white shadow rounded-lg">
-                            <div class="px-6 py-4 border-b border-gray-200">
-                                <h2 class="text-lg font-medium text-gray-900 flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    Rasmlar ({{ $property->images_exist->count() }})
-                                </h2>
-                            </div>
-                            <div class="px-6 py-4">
-                                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                                    @foreach($property->images_exist as $index => $image)
-                                        <div class="relative group">
-<a target="_blank" href="{{ asset('storage/' . $image) }}">
-                                            <img src="{{ asset('storage/' . $image) }}"
-                                                 alt="Property Image {{ $index + 1 }}"
-                                                 class="h-24 w-full object-cover rounded-lg cursor-pointer transition-transform duration-200 group-hover:scale-105"
-                                                 {{-- onclick="openModal('{{ asset('storage/' . $image) }}')" --}}
-                                                 loading="lazy">
-</a>
-                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
-                                                <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
+                   @if($property->images_exist->count() > 0)
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Rasmlar ({{ $property->images_exist->count() }})
+            </h2>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                @foreach($property->images_exist as $index => $image)
+                    <div class="relative group">
+                        <img src="{{ asset('storage/' . $image) }}"
+                             alt="Property Image {{ $index + 1 }}"
+                             class="h-24 w-full object-cover rounded-lg cursor-pointer transition-transform duration-200 group-hover:scale-105"
+                             onclick="openModal({{ $index }})"
+                             loading="lazy">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                            </svg>
                         </div>
-                    @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center" onclick="closeModal()">
+        <div class="relative max-w-4xl max-h-screen mx-4" onclick="event.stopPropagation()">
+            <!-- Close button -->
+            <button onclick="closeModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 z-60">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <!-- Previous button -->
+            <button onclick="previousImage()" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+
+            <!-- Next button -->
+            <button onclick="nextImage()" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+
+            <!-- Image -->
+            <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg">
+
+            <!-- Image counter -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                <span id="currentImageIndex">1</span> / <span id="totalImages">{{ $property->images_exist->count() }}</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            backdrop-filter: blur(8px);
+        }
+    </style>
+
+    <script>
+        // Store images array
+        const images = [
+            @foreach($property->images_exist as $image)
+                "{{ asset('storage/' . $image) }}",
+            @endforeach
+        ];
+
+        let currentImageIndex = 0;
+
+        function openModal(index) {
+            currentImageIndex = index;
+            updateModalImage();
+            document.getElementById('imageModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            updateModalImage();
+        }
+
+        function previousImage() {
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            updateModalImage();
+        }
+
+        function updateModalImage() {
+            document.getElementById('modalImage').src = images[currentImageIndex];
+            document.getElementById('currentImageIndex').textContent = currentImageIndex + 1;
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (!document.getElementById('imageModal').classList.contains('hidden')) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                } else if (e.key === 'ArrowRight') {
+                    nextImage();
+                } else if (e.key === 'ArrowLeft') {
+                    previousImage();
+                }
+            }
+        });
+    </script>
+@endif
                 </div>
 
                 <!-- Sidebar -->
