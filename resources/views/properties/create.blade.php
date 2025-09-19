@@ -87,7 +87,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Korxona nomi / F.I.SH <span class="text-red-500">* (STIR/PINFL yordamida Tekshirish tugmasini bosib to'ldiring)</span>
                         </label>
-                        <input type="text" name="owner_name" id="owner_name" value="{{ old('owner_name') }}" disabled required
+                        <input type="text" name="owner_name" id="owner_name" value="{{ old('owner_name') }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('owner_name') border-red-500 @enderror">
                         @error('owner_name')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
