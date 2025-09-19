@@ -366,11 +366,13 @@
                                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                                     @foreach($property->images_exist as $index => $image)
                                         <div class="relative group">
+<a target="_blank" href="{{ asset('storage/' . $image) }}">
                                             <img src="{{ asset('storage/' . $image) }}"
                                                  alt="Property Image {{ $index + 1 }}"
                                                  class="h-24 w-full object-cover rounded-lg cursor-pointer transition-transform duration-200 group-hover:scale-105"
-                                                 onclick="openModal('{{ asset('storage/' . $image) }}')"
+                                                 {{-- onclick="openModal('{{ asset('storage/' . $image) }}')" --}}
                                                  loading="lazy">
+</a>
                                             <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
                                                 <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
