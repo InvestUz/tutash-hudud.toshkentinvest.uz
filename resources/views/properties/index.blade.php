@@ -20,7 +20,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="px-6 py-4 bg-gray-50 border-b">
+    {{-- <div class="px-6 py-4 bg-gray-50 border-b">
         <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <input type="text" name="search" placeholder="Qidirish (ism, obyekt, kadastr)..."
@@ -55,7 +55,7 @@
                 </a>
             </div>
         </form>
-    </div>
+    </div> --}}
 
     <!-- Table -->
     <div class="overflow-x-auto">
