@@ -63,7 +63,6 @@ class DidoxApiService
                 'error' => 'API request failed',
                 'status' => $response->status()
             ];
-
         } catch (\Exception $e) {
             Log::error('Didox API exception for individual', [
                 'pinfl' => $pinfl,
@@ -129,7 +128,6 @@ class DidoxApiService
                 'error' => 'API request failed',
                 'status' => $response->status()
             ];
-
         } catch (\Exception $e) {
             Log::error('Didox API exception for legal entity', [
                 'tin' => $tin,
@@ -147,6 +145,25 @@ class DidoxApiService
      * Auto-detect and validate STIR/PINFL
      * Both use the same endpoint: GET /profile/{number}
      */
+    // public function validateStirPinfl(string $stirPinfl): array
+    // {
+    //     $cleaned = preg_replace('/[^0-9]/', '', $stirPinfl);
+
+    //     if (strlen($cleaned) === 14) {
+    //         // Individual (PINFL) - 14 digits
+    //         return $this->validateIndividual($cleaned);
+    //     } elseif (strlen($cleaned) === 9) {
+    //         // Legal entity (TIN) - 9 digits
+    //         return $this->validateLegalEntity($cleaned);
+    //     }
+
+    //     return [
+    //         'success' => false,
+    //         'error' => 'Invalid STIR/PINFL format. Must be 9 digits (TIN) or 14 digits (PINFL)',
+    //         'provided_length' => strlen($cleaned)
+    //     ];
+    // }
+
     public function validateStirPinfl(string $stirPinfl): array
     {
         $cleaned = preg_replace('/[^0-9]/', '', $stirPinfl);
