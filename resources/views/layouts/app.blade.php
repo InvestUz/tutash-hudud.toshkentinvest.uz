@@ -52,8 +52,18 @@
 
                 <div class="flex items-center space-x-4">
                     @auth
-                        <a style="background: #fff; color: blue; padding:5px 10px; border-radius: 20px;" href="{{route('properties.create')}}" class="text-white">Yaratish</a>
-                        <a href="{{route('profile.edit')}}" class="text-white">{{ auth()->user()->name }}</a>
+                        <a style="background: #fff; color: blue; padding:5px 10px; border-radius: 20px;"
+                            href="{{ route('properties.create') }}" class="text-white">Yaratish</a>
+
+@if(auth()->user()->email === 'admin@tutashhudud.uz')
+                        <form action="{{ route('properties.export') }}" method="POST">
+                            @csrf
+                            @method('POST')
+                            <button type="submit" class="btn btn-success px-2"
+                                style="background: green; color:white; padding:5px 10px; border-radius: 20px;">Export</button>
+                        </form>
+@endif
+                        <a href="{{ route('profile.edit') }}" class="text-white">{{ auth()->user()->name }}</a>
                         @if (auth()->user()->district)
                             <span class="text-blue-200 text-sm">({{ auth()->user()->district->name }})</span>
                         @endif
@@ -408,7 +418,8 @@
                     } else {
                         console.log('Location is outside Tashkent bounds');
                         alert(
-                            'Siz Toshkent shahri tashqarisida turibsiz. Iltimos, xaritadan Toshkent shahridagi joyni tanlang.');
+                            'Siz Toshkent shahri tashqarisida turibsiz. Iltimos, xaritadan Toshkent shahridagi joyni tanlang.'
+                            );
                         map.setView([TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng], 11);
                     }
                 },

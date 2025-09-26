@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Property;
+use Illuminate\Http\Request;
+
+class PropertyExportController extends Controller
+{
+    public function exportToZip(Request $request)
+    {
+        // Build query with filters
+        $query = Property::with(['district', 'mahalla', 'street', 'creator']);
+
+        // Apply filters
+        if ($request->filled('district_id')) {
+            $query->where('district_id', $request->district_id);
+        }
+
+        if ($request->filled('usage_purpose')) {
+            $query->where('usage_purpose', $request->usage_purpose);
+        }
+
+        if ($request->filled('has_tenant')) {
+            $query->where('has_tenant', $request->has_tenant);
+        }
+
+        // Check user permissions
+        $user = auth()->user();
+        if ($user->role === 'district_admin') {
+            $query->where('district_id', $user->district_id);
+        } elseif ($user->role === 'user') {
+            $query->where('created_by', $user->id);
+        }
+
+        $properties = $query->get();
+
+        // Prepare data for Excel
+        $excelData = $this->prepareExcelData($properties);
+
+        // Generate XLSX file
+        $fileName = 'properties_export_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $filePath = storage_path('app/temp/' . $fileName);
+
+        // Create temp directory if not exists
+        if (!file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+
+        // Include the SimpleXLSXGen library
+        require_once app_path('Libraries/SimpleXLSXGen.php');
+
+        // Create Excel file
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($excelData);
+        $xlsx->saveAs($filePath);
+
+        // Download and delete
+        return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
+    }
+
+    private function prepareExcelData($properties)
+    {
+        // Headers with bold styling
+        $data = [[
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">ID</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Kadastr raqami</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">STIR/PINFL</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Korxona/F.I.SH</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Tuman</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Mahalla</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ko\'cha</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Uy raqami</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Rahbar</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Telefon</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Uzunlik (m)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Kenglik (m)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Hisoblangan maydon (m²)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Umumiy maydon (m²)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Hisoblash usuli</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Fasad uzunligi (m)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Terassa tomonlari (m)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yo\'lgacha masofa (m)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Trotuargacha masofa (m)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Foydalanish maqsadi</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Faoliyat turi</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Terrassada qurilmalar</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Doimiy qurilmalar</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ruxsatnoma</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ijarachi bormi</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ijarachi STIR/PINFL</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ijarachi nomi</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ijarachi faoliyat turi</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Tutash hudud faoliyati</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Tutash hudud maydoni</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Tutash hudud qurilmalari</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Qo\'shimcha ma\'lumot</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Kenglik (GPS)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Uzunlik (GPS)</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yaratilgan sana</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yaratuvchi</style>',
+        ]];
+
+        // Add data rows
+        foreach ($properties as $property) {
+            $data[] = [
+                $property->id,
+                $property->building_cadastr_number,
+                $property->owner_stir_pinfl,
+                $property->owner_name,
+                $property->district->name ?? '',
+                $property->mahalla->name ?? '',
+                $property->street->name ?? '',
+                $property->house_number,
+                $property->director_name,
+                $property->phone_number,
+                $property->area_length,
+                $property->area_width,
+                $property->calculated_land_area,
+                $property->total_area,
+                $property->area_calculation_method,
+                $property->building_facade_length,
+                $property->summer_terrace_sides,
+                $property->distance_to_roadway,
+                $property->distance_to_sidewalk,
+                $property->usage_purpose,
+                $property->activity_type,
+                $property->terrace_buildings_available,
+                $property->terrace_buildings_permanent,
+                $property->has_permit,
+                $property->has_tenant ? 'Ha' : "Yo'q",
+                $property->tenant_stir_pinfl ?? '',
+                $property->tenant_name ?? '',
+                $property->tenant_activity_type ?? '',
+                $property->adjacent_activity_type,
+                $property->adjacent_activity_land,
+                $property->getAdjacentFacilitiesTextAttribute(),
+                $property->additional_info,
+                $property->latitude,
+                $property->longitude,
+                $property->created_at->format('Y-m-d H:i:s'),
+                $property->creator->name ?? ''
+            ];
+        }
+
+        return $data;
+    }
+}
