@@ -4,15 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Property;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class PropertyExportController extends Controller
 {
     public function exportToZip(Request $request)
     {
+        // Validate date inputs
+        $request->validate([
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+        ]);
+
         // Build query with filters
         $query = Property::with(['district', 'mahalla', 'street', 'creator']);
 
-        // Apply filters
+        // Apply date range filters
+        if ($request->filled('date_from')) {
+            $dateFrom = Carbon::parse($request->date_from)->startOfDay();
+            $query->where('created_at', '>=', $dateFrom);
+        }
+
+        if ($request->filled('date_to')) {
+            $dateTo = Carbon::parse($request->date_to)->endOfDay();
+            $query->where('created_at', '<=', $dateTo);
+        }
+
+        // Apply other filters
         if ($request->filled('district_id')) {
             $query->where('district_id', $request->district_id);
         }
@@ -35,11 +53,23 @@ class PropertyExportController extends Controller
 
         $properties = $query->get();
 
+        // Check if there are properties to export
+        if ($properties->isEmpty()) {
+            return back()->with('error', 'Tanlangan davrda ma\'lumotlar topilmadi.');
+        }
+
         // Prepare data for Excel
         $excelData = $this->prepareExcelData($properties);
 
-        // Generate XLSX file
-        $fileName = 'properties_export_' . date('Y-m-d_H-i-s') . '.xlsx';
+        // Generate XLSX file with date range in filename
+        $dateRange = '';
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            $from = $request->filled('date_from') ? date('Y-m-d', strtotime($request->date_from)) : 'start';
+            $to = $request->filled('date_to') ? date('Y-m-d', strtotime($request->date_to)) : 'end';
+            $dateRange = "_{$from}_to_{$to}";
+        }
+
+        $fileName = 'properties_export' . $dateRange . '_' . date('Y-m-d_H-i-s') . '.xlsx';
         $filePath = storage_path('app/temp/' . $fileName);
 
         // Create temp directory if not exists

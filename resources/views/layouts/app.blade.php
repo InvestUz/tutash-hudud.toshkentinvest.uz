@@ -54,15 +54,36 @@
                     @auth
                         <a style="background: #fff; color: blue; padding:5px 10px; border-radius: 20px;"
                             href="{{ route('properties.create') }}" class="text-white">Yaratish</a>
+                            @if(auth()->user()->email === 'admin@tutashhudud.uz')
+                                <form action="{{ route('properties.export') }}" method="POST" class="d-flex align-items-end gap-2">
+                                    @csrf
+                                    @method('POST')
 
-@if(auth()->user()->email === 'admin@tutashhudud.uz')
-                        <form action="{{ route('properties.export') }}" method="POST">
-                            @csrf
-                            @method('POST')
-                            <button type="submit" class="btn btn-success px-2"
-                                style="background: green; color:white; padding:5px 10px; border-radius: 20px;">Export</button>
-                        </form>
-@endif
+                                    <div>
+                                        <label for="date_from" class="form-label small">Dan:</label>
+                                        <input type="date"
+                                            name="date_from"
+                                            id="date_from"
+                                            class="form-control form-control-sm"
+                                            value="{{ request('date_from') }}">
+                                    </div>
+
+                                    <div>
+                                        <label for="date_to" class="form-label small">Gacha:</label>
+                                        <input type="date"
+                                            name="date_to"
+                                            id="date_to"
+                                            class="form-control form-control-sm"
+                                            value="{{ request('date_to') }}">
+                                    </div>
+
+                                    <button type="submit"
+                                            class="btn btn-success btn-sm px-3"
+                                            style="background: green; color:white; border-radius: 20px;">
+                                        Export
+                                    </button>
+                                </form>
+                            @endif
                         <a href="{{ route('profile.edit') }}" class="text-white">{{ auth()->user()->name }}</a>
                         @if (auth()->user()->district)
                             <span class="text-blue-200 text-sm">({{ auth()->user()->district->name }})</span>
@@ -306,7 +327,7 @@
                 window.marker = marker;
 
             } catch (error) {
-                console.error('Error adding marker:', error);
+                console.error('Error adding marker:', error)wwwwwwwwww;
                 alert('Marker qo\'yishda xatolik yuz berdi.');
             }
         }
