@@ -394,6 +394,82 @@ const lineChart = new Chart(lineCtx, {
     }
 });
 
+// Bar Chart
+const barCtx = document.getElementById('barChart');
+const barChart = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+        labels: {!! json_encode($barChartData['labels'] ?? []) !!},
+        datasets: [{
+            label: 'Mulklar soni',
+            data: {!! json_encode($barChartData['data'] ?? []) !!},
+            backgroundColor: chartColors.primary,
+            borderColor: chartColors.primary,
+            borderWidth: 1,
+            borderRadius: 4,
+            barThickness: 'flex',
+            maxBarThickness: 50
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: chartColors.gray[900],
+                padding: 12,
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: chartColors.gray[300],
+                borderWidth: 1,
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return 'Mulklar: ' + context.parsed.y;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: chartColors.gray[300],
+                    drawBorder: false
+                },
+                ticks: {
+                    color: chartColors.gray[700],
+                    precision: 0,
+                    font: {
+                        size: 11
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    color: chartColors.gray[700],
+                    font: {
+                        size: 11
+                    },
+                    maxRotation: 45,
+                    minRotation: 0
+                }
+            }
+        },
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        }
+    }
+});
+
 // Chart update functions
 function updateChart(chartType, period) {
     // Update button states
