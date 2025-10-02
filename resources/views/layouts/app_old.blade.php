@@ -17,397 +17,110 @@
         .uzbek-font {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        /* Custom Tailwind Configuration */
-        @layer utilities {
-            .text-primary {
-                color: #3561db;
-            }
-
-            .bg-primary {
-                background-color: #3561db;
-            }
-
-            .border-primary {
-                border-color: #3561db;
-            }
-
-            .hover\:bg-primary-light:hover {
-                background-color: rgba(53, 97, 219, 0.05);
-            }
-        }
-
-        /* Smooth transitions */
-        * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-duration: 200ms;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Map container */
-        #map {
-            height: 400px;
-            width: 100%;
-            z-index: 0;
-        }
-
-        /* Modal backdrop */
-        .modal-backdrop {
-            backdrop-filter: blur(2px);
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        /* Loading spinner */
-        .spinner {
-            border: 2px solid #f3f4f6;
-            border-top: 2px solid #3561db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
     </style>
 </head>
 
 <body class="bg-gray-50 uzbek-font">
 
     <!-- Navigation -->
-    <nav class="bg-white border-b border-gray-300 shadow-sm sticky top-0 z-40">
+    <nav class="bg-blue-600 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <!-- Left side -->
-                <div class="flex items-center space-x-8">
-                    <!-- Logo -->
-                    <div class="flex-shrink-0 flex items-center">
-                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-[#3561db] bg-opacity-10 rounded-lg flex items-center justify-center">
-                                <svg class="w-5 h-5 text-[#3561db]" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
-                                    </path>
-                                </svg>
-                            </div>
-                            <span class="text-lg font-bold text-gray-900">Tutash Hudud</span>
-                        </a>
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        {{-- <h1 class="text-white text-xl font-bold">Tutash Hudud Tizimi</h1> --}}
                     </div>
-
-                    <!-- Navigation Links -->
-                    <div class="hidden md:flex items-center space-x-1">
-                        <a href="{{ route('dashboard') }}"
-                            class="px-4 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700 hover:bg-gray-100' }}">
-                            <i class="fas fa-home mr-2"></i>
-                            Bosh sahifa
-                        </a>
-                        <a href="{{ route('properties.index') }}"
-                            class="px-4 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.*') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700 hover:bg-gray-100' }}">
-                            <i class="fas fa-building mr-2"></i>
-                            Mulklar
-                        </a>
-                        @if (auth()->user()->hasPermission('create'))
-                            <a href="{{ route('properties.create') }}"
-                                class="px-4 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.create') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700 hover:bg-gray-100' }}">
-                                <i class="fas fa-plus-circle mr-2"></i>
-                                Yangi mulk
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="{{ route('dashboard') }}"
+                                class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                Bosh sahifa
                             </a>
-                        @endif
+                            <a href="{{ route('properties.index') }}"
+                                class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                Mulklar
+                            </a>
+                            @if (auth()->user()->hasPermission('create'))
+                                <a href="{{ route('properties.create') }}"
+                                    class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+                                    Yangi mulk
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
-                <!-- Right side -->
                 <div class="flex items-center space-x-4">
                     @auth
-                        <!-- Export Button (Admin Only) -->
-                        @if (auth()->user()->email === 'admin@tutashhudud.uz')
-                            <button onclick="toggleExportModal()"
-                                class="hidden md:flex items-center px-4 py-2 bg-[#3561db] text-white text-sm font-medium rounded-lg hover:bg-opacity-90 shadow-sm">
-                                <i class="fas fa-file-export mr-2"></i>
-                                Export
-                            </button>
-                        @endif
-
-                        <!-- User Menu -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                                <div class="text-right hidden sm:block">
-                                    <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
-                                    @if (auth()->user()->district)
-                                        <p class="text-xs text-gray-600">{{ auth()->user()->district->name }}</p>
-                                    @endif
-                                </div>
-                                <div
-                                    class="w-10 h-10 bg-[#3561db] bg-opacity-10 rounded-full flex items-center justify-center">
-                                    <span
-                                        class="text-[#3561db] text-sm font-bold">{{ substr(auth()->user()->name, 0, 1) }}</span>
-                                </div>
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-
-                            <!-- Dropdown Menu -->
-                            <div x-show="open" @click.away="open = false"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 transform scale-95"
-                                x-transition:enter-end="opacity-100 transform scale-100"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 transform scale-100"
-                                x-transition:leave-end="opacity-0 transform scale-95"
-                                class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-300 py-1 z-50"
-                                style="display: none;">
-                                <a href="{{ route('profile.edit') }}"
-                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <i class="fas fa-user-circle mr-3 text-gray-500"></i>
-                                    Profil
-                                </a>
-                                <div class="border-t border-gray-300 my-1"></div>
-                                <form method="POST" action="{{ route('logout') }}">
+                        <a style="background: #fff; color: blue; padding:5px 10px; border-radius: 20px;"
+                            href="{{ route('properties.create') }}" class="text-white">Yaratish</a>
+                            @if(auth()->user()->email === 'admin@tutashhudud.uz')
+                                <form action="{{ route('properties.export') }}" method="POST" class="d-flex align-items-end gap-2">
                                     @csrf
+                                    @method('POST')
+
+                                    <div>
+                                        <label for="date_from" class="form-label small">Dan:</label>
+                                        <input type="date"
+                                            name="date_from"
+                                            id="date_from"
+                                            class="form-control form-control-sm"
+                                            value="{{ request('date_from') }}">
+                                    </div>
+
+                                    <div>
+                                        <label for="date_to" class="form-label small">Gacha:</label>
+                                        <input type="date"
+                                            name="date_to"
+                                            id="date_to"
+                                            class="form-control form-control-sm"
+                                            value="{{ request('date_to') }}">
+                                    </div>
+
                                     <button type="submit"
-                                        class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                                        <i class="fas fa-sign-out-alt mr-3"></i>
-                                        Chiqish
+                                            class="btn btn-success btn-sm px-3"
+                                            style="background: green; color:white; border-radius: 20px;">
+                                        Export
                                     </button>
                                 </form>
-                            </div>
-                        </div>
+                            @endif
+                        <a href="{{ route('profile.edit') }}" class="text-white">{{ auth()->user()->name }}</a>
+                        @if (auth()->user()->district)
+                            <span class="text-blue-200 text-sm">({{ auth()->user()->district->name }})</span>
+                        @endif
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-white hover:text-blue-200">
+                                Chiqish
+                            </button>
+                        </form>
                     @endauth
                 </div>
             </div>
         </div>
-
-        <!-- Mobile Navigation -->
-        <div class="md:hidden border-t border-gray-300">
-            <div class="px-4 py-3 space-y-1">
-                <a href="{{ route('dashboard') }}"
-                    class="flex items-center px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700' }}">
-                    <i class="fas fa-home mr-3"></i>
-                    Bosh sahifa
-                </a>
-                <a href="{{ route('properties.index') }}"
-                    class="flex items-center px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.*') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700' }}">
-                    <i class="fas fa-building mr-3"></i>
-                    Mulklar
-                </a>
-                @if (auth()->user()->hasPermission('create'))
-                    <a href="{{ route('properties.create') }}"
-                        class="flex items-center px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.create') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700' }}">
-                        <i class="fas fa-plus-circle mr-3"></i>
-                        Yangi mulk
-                    </a>
-                @endif
-            </div>
-        </div>
     </nav>
 
-
-    <!-- Flash Messages -->
-    @if (session('success'))
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between"
-                role="alert">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="text-sm font-medium">{{ session('success') }}</span>
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-green-600 hover:text-green-800">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center justify-between"
-                role="alert">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="text-sm font-medium">{{ session('error') }}</span>
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    @endif
-
-    @if ($errors->any())
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
-                <div class="flex items-center mb-2">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="text-sm font-medium">Xatolar mavjud:</span>
-                </div>
-                <ul class="list-disc list-inside text-sm space-y-1 ml-7">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
-
     <!-- Main Content -->
-    <main>
-        @yield('content')
+    <main class="py-6">
+        <div class="max-w-xxl mx-auto px-4 sm:px-6 lg:px-8">
+            @if (session('success'))
+                <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @yield('content')
+        </div>
     </main>
-
- <!-- Footer -->
-    <footer class="bg-white border-t border-gray-300 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                <div class="text-center md:text-left">
-                    <p class="text-sm text-gray-600">© {{ date('Y') }} Tutash Hudud Tizimi. Barcha huquqlar himoyalangan.</p>
-                </div>
-                <div class="flex items-center space-x-6">
-                    <a href="#" class="text-sm text-gray-600 hover:text-[#3561db]">Yordam</a>
-                    <a href="#" class="text-sm text-gray-600 hover:text-[#3561db]">Aloqa</a>
-                    <a href="#" class="text-sm text-gray-600 hover:text-[#3561db]">Maxfiylik</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-  <!-- Global Export Modal (Admin Only) -->
-    @if(auth()->check() && auth()->user()->email === 'admin@tutashhudud.uz')
-    <div id="exportModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="border-b border-gray-300 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide">Ma'lumotlarni eksport qilish</h3>
-                    <button onclick="toggleExportModal()" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <form action="{{ route('properties.export') }}" method="POST" class="p-6">
-                @csrf
-                <div class="flex flex-wrap gap-3 mb-4">
-                    <div class="flex-1 min-w-[140px]">
-                        <label class="block text-xs font-medium text-gray-700 mb-2">Dan:</label>
-                        <input type="date" name="date_from" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db] transition-all duration-200">
-                    </div>
-                    <div class="flex-1 min-w-[140px]">
-                        <label class="block text-xs font-medium text-gray-700 mb-2">Gacha:</label>
-                        <input type="date" name="date_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db] transition-all duration-200">
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 border border-gray-300 rounded-lg p-3 mb-4">
-                    <p class="text-xs text-gray-600">
-                        <svg class="w-4 h-4 inline mr-1 text-[#3561db]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Agar sana tanlanmasa, barcha ma'lumotlar eksport qilinadi
-                    </p>
-                </div>
-
-                <div class="flex space-x-3">
-                    <button type="button" onclick="toggleExportModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        Bekor qilish
-                    </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-[#3561db] text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition-all duration-200 shadow-sm">
-                        Eksport qilish
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-<script>
-
-        // Window resize handler
-        window.addEventListener('resize', function() {
-            if (map) {
-                setTimeout(() => map.invalidateSize(), 100);
-            }
-        });
-
-        // Toggle Export Modal
-        function toggleExportModal() {
-            const modal = document.getElementById('exportModal');
-            if (modal) {
-                modal.classList.toggle('hidden');
-            }
-        }
-
-        // Close modal on ESC key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('exportModal');
-                if (modal && !modal.classList.contains('hidden')) {
-                    modal.classList.add('hidden');
-                }
-            }
-        });
-
-        // Close modal on outside click
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('exportModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        this.classList.add('hidden');
-                    }
-                });
-            }
-        });
-
-</script>
-    @endif
 
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 
 
     <script>
@@ -614,7 +327,7 @@
                 window.marker = marker;
 
             } catch (error) {
-                console.error('Error adding marker:', error) wwwwwwwwww;
+                console.error('Error adding marker:', error)wwwwwwwwww;
                 alert('Marker qo\'yishda xatolik yuz berdi.');
             }
         }
@@ -727,7 +440,7 @@
                         console.log('Location is outside Tashkent bounds');
                         alert(
                             'Siz Toshkent shahri tashqarisida turibsiz. Iltimos, xaritadan Toshkent shahridagi joyni tanlang.'
-                        );
+                            );
                         map.setView([TASHKENT_CONFIG.center.lat, TASHKENT_CONFIG.center.lng], 11);
                     }
                 },
@@ -839,8 +552,6 @@
                     select.innerHTML = '<option value="">Xatolik yuz berdi</option>';
                     select.disabled = false;
                 });
-
-
         }
 
         // =============== MODAL FUNCTIONS ===============
@@ -1112,8 +823,6 @@
                 }, 100);
             }
         });
-
-
 
         // =============== DEBUG FUNCTIONS ===============
 
