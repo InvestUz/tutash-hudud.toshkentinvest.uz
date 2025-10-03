@@ -70,6 +70,10 @@ public function hasPermission(string $permission): bool
             return true;
         }
 
+        if ($this->role === 'view_only') {
+            return true;
+        }
+
         if ($this->role === 'district_admin') {
             return $property->district_id === $this->district_id;
         }
