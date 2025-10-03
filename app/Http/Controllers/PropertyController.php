@@ -25,7 +25,7 @@ class PropertyController extends Controller
         $query = Property::with(['district', 'mahalla', 'street', 'creator']);
 
         // User permission check
-        if (auth()->user()->role !== 'super_admin') {
+        if (auth()->user()->role !== 'super_admin' || auth()->user()->role !== 'view_only') {
             if (auth()->user()->role === 'district_admin') {
                 $query->where('district_id', auth()->user()->district_id);
             } else {
