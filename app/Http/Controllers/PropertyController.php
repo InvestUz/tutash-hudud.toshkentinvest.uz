@@ -33,34 +33,47 @@ class PropertyController extends Controller
             }
         }
 
-        // Search
+        // Search - searchable fields
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('owner_name', 'like', "%{$search}%")
-                    ->orWhere('object_name', 'like', "%{$search}%")
                     ->orWhere('building_cadastr_number', 'like', "%{$search}%")
                     ->orWhere('director_name', 'like', "%{$search}%")
-                    ->orWhere('phone_number', 'like', "%{$search}%");
+                    ->orWhere('phone_number', 'like', "%{$search}%")
+                    ->orWhere('tenant_name', 'like', "%{$search}%")
+                    ->orWhere('owner_stir_pinfl', 'like', "%{$search}%")
+                    ->orWhere('tenant_stir_pinfl', 'like', "%{$search}%");
             });
         }
 
-        // Filters
+        // Filter by district
         if ($request->filled('district_id')) {
             $query->where('district_id', $request->district_id);
         }
 
+        // Filter by mahalla
+        if ($request->filled('mahalla_id')) {
+            $query->where('mahalla_id', $request->mahalla_id);
+        }
+
+        // Filter by activity type
         if ($request->filled('activity_type')) {
-            $query->where('activity_type', $request->activity_type);
+            $query->where('activity_type', 'like', "%{$request->activity_type}%");
         }
 
-        if ($request->filled('tenant_activity_type')) {
-            $query->where('tenant_activity_type', $request->tenant_activity_type);
+        // Filter by has tenant
+        if ($request->filled('has_tenant')) {
+            $query->where('has_tenant', $request->has_tenant);
         }
 
+        // Filter by verified only
         if ($request->filled('verified_only')) {
             $query->where('owner_verified', true);
         }
+
+        // Sort
+        $query->orderBy('created_at', 'desc');
 
         $properties = $query->paginate(15);
         $districts = District::where('is_active', true)->get();

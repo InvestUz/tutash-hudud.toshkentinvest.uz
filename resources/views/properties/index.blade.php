@@ -19,17 +19,17 @@
         </div>
     </div>
 
-    <!-- Filters -->
-    {{-- <div class="px-6 py-4 bg-gray-50 border-b">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+   <!-- Filters -->
+    <div class="px-6 py-4 bg-gray-50 border-b">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
-                <input type="text" name="search" placeholder="Qidirish (ism, obyekt, kadastr)..."
-                       value="{{ request('search') }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="text" name="search" placeholder="Qidirish (ism, kadastr, telefon)..."
+                    value="{{ request('search') }}"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <div>
-                <select name="district_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <select name="district_id" id="filter_district" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Barcha tumanlar</option>
                     @foreach($districts as $district)
                         <option value="{{ $district->id }}"
@@ -42,20 +42,28 @@
 
             <div>
                 <input type="text" name="activity_type" placeholder="Faoliyat turi"
-                       value="{{ request('activity_type') }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    value="{{ request('activity_type') }}"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <select name="has_tenant" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Ijarachi holati</option>
+                    <option value="1" {{ request('has_tenant') == '1' ? 'selected' : '' }}>Ijarachi mavjud</option>
+                    <option value="0" {{ request('has_tenant') == '0' ? 'selected' : '' }}>Ijarachi yo'q</option>
+                </select>
             </div>
 
             <div class="flex space-x-2">
-                <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex-1">
                     Qidirish
                 </button>
-                <a href="{{ route('properties.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg text-sm">
+                <a href="{{ route('properties.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg text-sm flex-1 text-center">
                     Tozalash
                 </a>
             </div>
         </form>
-    </div> --}}
+    </div>
 
     <!-- Table -->
     <div class="overflow-x-auto">
