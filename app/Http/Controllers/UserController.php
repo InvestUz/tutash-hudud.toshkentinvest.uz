@@ -114,7 +114,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,manager,employee',
+            'role' => 'required|in:admin,manager,employee,view_only',
             'phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
             'is_active' => 'boolean'
