@@ -120,10 +120,10 @@
                                 <a href="{{ route('properties.show', $property) }}"
                                    class="text-blue-600 hover:text-blue-900">Ko'rish</a>
 
-                                {{-- @if(auth()->user()->hasPermission('edit'))
+                                @if(auth()->user()->hasPermission('edit'))
                                     <a href="{{ route('properties.edit', $property) }}"
                                        class="text-green-600 hover:text-green-900">Tahrirlash</a>
-                                @endif --}}
+                                @endif
 
                                 {{-- @if(auth()->user()->hasPermission('delete'))
                                     <form method="POST" action="{{ route('properties.destroy', $property) }}"
