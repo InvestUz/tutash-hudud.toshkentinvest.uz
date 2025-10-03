@@ -73,7 +73,7 @@ class PropertyController extends Controller
         }
 
         // Sort
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('updated_at', 'desc');
 
         $properties = $query->paginate(15);
         $districts = District::where('is_active', true)->get();
