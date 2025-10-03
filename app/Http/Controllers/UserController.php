@@ -91,7 +91,8 @@ class UserController extends Controller
         $roles = [
             'admin' => 'Администратор',
             'manager' => 'Менеджер',
-            'employee' => 'Сотрудник'
+            'employee' => 'Сотрудник',
+            'view_only' => 'View Only',
         ];
 
         return view('users.index', compact('users',  'roles'));
@@ -160,7 +161,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'required|in:admin,manager,employee',
+            'role' => 'required|in:admin,manager,employee,view_only',
             'phone' => 'nullable|string|max:20',
             'department' => 'nullable|string|max:255',
             'is_active' => 'boolean'

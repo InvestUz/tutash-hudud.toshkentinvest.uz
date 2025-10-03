@@ -91,6 +91,10 @@
                                 {{ old('role', isset($user) ? $user->role : '') === 'employee' ? 'selected' : '' }}>
                                 Сотрудник
                             </option>
+                            <option value="view_only"
+                                {{ old('role', isset($user) ? $user->role : '') === 'view_only' ? 'selected' : '' }}>
+                                View Only
+                            </option>
                         </select>
                         @error('role')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
