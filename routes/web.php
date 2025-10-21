@@ -15,6 +15,8 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/properties/map', [PropertyController::class, 'mapView'])->name('properties.map');
+    Route::get('/properties/{property}/details', [PropertyController::class, 'getPropertyDetails']);
+
 
   Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');

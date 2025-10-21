@@ -16,11 +16,20 @@
                         </svg>
                         Mulklar Xaritasi
                     </h1>
-                    <p class="text-sm text-gray-600 mt-1">Jami: <span class="font-semibold text-[#3561db]">{{ $properties->count() }}</span> ta mulk</p>
+                    <p class="text-sm text-gray-600 mt-1">Jami: <span id="propertyCount" class="font-semibold text-[#3561db]">{{ $properties->count() }}</span> ta mulk</p>
                 </div>
 
                 <!-- Filters -->
                 <div class="flex flex-wrap gap-3">
+                    <!-- Map Style Selector -->
+                    <select id="mapStyleSelector" onchange="changeMapStyle()"
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db]">
+                        <option value="streets">Ko'chalar</option>
+                        <option value="satellite">Sun'iy yo'ldosh</option>
+                        <option value="hybrid">Gibrid</option>
+                        <option value="terrain">Relyef</option>
+                    </select>
+
                     <!-- District Filter -->
                     <select id="districtFilter" onchange="applyFilters()"
                             class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db]">
@@ -71,6 +80,15 @@
 
     <!-- Map and Sidebar Container -->
     <div class="flex-1 flex overflow-hidden relative">
+        <!-- Loading Overlay -->
+        <div id="mapLoadingOverlay" class="absolute inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center">
+            <div class="text-center">
+                <div class="spinner mx-auto mb-4" style="width: 40px; height: 40px;"></div>
+                <p class="text-gray-700 font-medium">Xarita yuklanmoqda...</p>
+                <p class="text-sm text-gray-500 mt-2">Iltimos, kuting</p>
+            </div>
+        </div>
+
         <!-- Map Container -->
         <div id="mapContainer" class="flex-1 relative transition-all duration-300">
             <div id="propertyMap" class="w-full h-full"></div>
@@ -135,37 +153,59 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.custom-marker {
-    width: 32px;
-    height: 32px;
-    border-radius: 50% 50% 50% 0;
-    background: #3561db;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    transform: rotate(-45deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Custom marker cluster styles */
+.marker-cluster-small {
+    background-color: rgba(53, 97, 219, 0.6);
+}
+.marker-cluster-small div {
+    background-color: rgba(53, 97, 219, 0.8);
 }
 
-.custom-marker.verified {
-    background: #10b981;
+.marker-cluster-medium {
+    background-color: rgba(241, 128, 23, 0.6);
+}
+.marker-cluster-medium div {
+    background-color: rgba(241, 128, 23, 0.8);
 }
 
-.custom-marker.tenant {
-    background: #f97316;
+.marker-cluster-large {
+    background-color: rgba(253, 156, 115, 0.6);
+}
+.marker-cluster-large div {
+    background-color: rgba(253, 156, 115, 0.8);
 }
 
-.custom-marker::after {
-    content: '';
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 50%;
-    transform: rotate(45deg);
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+}
+.marker-cluster div {
+    width: 30px;
+    height: 30px;
+    margin-left: 5px;
+    margin-top: 5px;
+    text-align: center;
+    border-radius: 15px;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+    font-weight: bold;
+}
+.marker-cluster span {
+    line-height: 30px;
+    color: white;
 }
 
-/* Image Gallery */
+/* Lazy load image placeholder */
+.lazy-image {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
 .gallery-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -177,14 +217,18 @@
     object-fit: cover;
     border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, opacity 0.3s;
+    opacity: 0;
+}
+
+.gallery-image.loaded {
+    opacity: 1;
 }
 
 .gallery-image:hover {
     transform: scale(1.05);
 }
 
-/* Lightbox */
 .lightbox {
     display: none;
     position: fixed;
@@ -204,102 +248,210 @@
     max-height: 90%;
     object-fit: contain;
 }
+
+/* Custom marker cluster styles */
+.marker-cluster-small {
+    background-color: rgba(53, 97, 219, 0.6);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.marker-cluster-small div {
+    background-color: rgba(53, 97, 219, 0.9);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+}
 </style>
 
 <script>
 let propertyMap = null;
 let markers = [];
-let propertiesData = @json($properties);
+let currentLayer = null;
+let propertiesData = {!! json_encode($properties->map(function($p) {
+    return [
+        'id' => $p->id,
+        'latitude' => $p->latitude,
+        'longitude' => $p->longitude,
+        'owner_name' => $p->owner_name,
+        'district_name' => optional($p->district)->name ?? '',
+        'owner_verified' => $p->owner_verified,
+        'has_tenant' => $p->has_tenant,
+    ];
+})) !!};
 let currentProperty = null;
+
+// Map layer configurations
+const mapLayers = {
+    streets: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution: '© OpenStreetMap contributors'
+    },
+    satellite: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attribution: '© Esri'
+    },
+    hybrid: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attribution: '© Esri',
+        overlay: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    },
+    terrain: {
+        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        attribution: '© OpenTopoMap contributors'
+    }
+};
 
 // Initialize map on page load
 document.addEventListener('DOMContentLoaded', function() {
-    initPropertyMap();
+    console.log('Initializing map...');
+
+    // Defer map initialization slightly for better performance
+    setTimeout(() => {
+        initPropertyMap();
+    }, 100);
 });
 
 function initPropertyMap() {
-    // Initialize map centered on Tashkent
-    propertyMap = L.map('propertyMap').setView([41.2995, 69.2401], 11);
+    console.log('Initializing optimized map...');
 
-    // Add tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18
+    // Initialize map
+    propertyMap = L.map('propertyMap', {
+        preferCanvas: true, // Better performance for many markers
+        zoomControl: true,
+        attributionControl: true
+    }).setView([41.2995, 69.2401], 11);
+
+    // Add default tile layer
+    currentLayer = L.tileLayer(mapLayers.streets.url, {
+        attribution: mapLayers.streets.attribution,
+        maxZoom: 18,
+        minZoom: 9
     }).addTo(propertyMap);
 
-    // Add properties as markers
-    addPropertyMarkers();
+    // Add markers in batches for better performance
+    addPropertyMarkersBatched();
 
-    // Invalidate size after a short delay
+    // Hide loading overlay
+    setTimeout(() => {
+        document.getElementById('mapLoadingOverlay').style.display = 'none';
+    }, 500);
+
+    // Invalidate size
     setTimeout(() => {
         propertyMap.invalidateSize();
-    }, 100);
+    }, 200);
 }
 
-function addPropertyMarkers() {
-    // Clear existing markers
-    markers.forEach(marker => propertyMap.removeLayer(marker));
-    markers = [];
-
-    // Create bounds for fitting
+function addPropertyMarkersBatched() {
+    const batchSize = 100; // Process 100 markers at a time
+    let currentIndex = 0;
     const bounds = [];
 
-    propertiesData.forEach(property => {
-        const lat = parseFloat(property.latitude);
-        const lng = parseFloat(property.longitude);
+    function processBatch() {
+        const endIndex = Math.min(currentIndex + batchSize, propertiesData.length);
 
-        if (isNaN(lat) || isNaN(lng)) return;
+        for (let i = currentIndex; i < endIndex; i++) {
+            const property = propertiesData[i];
+            const lat = parseFloat(property.latitude);
+            const lng = parseFloat(property.longitude);
 
-        bounds.push([lat, lng]);
+            if (isNaN(lat) || isNaN(lng)) continue;
 
-        // Custom icon based on property status
-        let markerColor = '#3561db'; // default blue
-        let markerClass = 'custom-marker';
+            bounds.push([lat, lng]);
 
-        if (property.owner_verified) {
-            markerColor = '#10b981'; // green for verified
-            markerClass += ' verified';
-        } else if (property.has_tenant) {
-            markerColor = '#f97316'; // orange for tenant
-            markerClass += ' tenant';
-        }
+            // Create simple circle marker for better performance
+            const marker = L.circleMarker([lat, lng], {
+                radius: 8,
+                fillColor: property.owner_verified ? '#10b981' : property.has_tenant ? '#f97316' : '#3561db',
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(propertyMap);
 
-        const customIcon = L.divIcon({
-            className: markerClass,
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32]
-        });
+            marker.propertyId = property.id;
 
-        const marker = L.marker([lat, lng], { icon: customIcon })
-            .addTo(propertyMap)
-            .on('click', function() {
-                openPropertySidebar(property);
+            // Bind simple popup
+            marker.bindPopup(`
+                <div class="text-sm">
+                    <strong class="text-gray-900">${property.owner_name}</strong>
+                    <p class="text-gray-600 text-xs mt-1">${property.district_name}</p>
+                    <p class="text-[#3561db] text-xs mt-1 cursor-pointer hover:underline">
+                        Ko'proq ma'lumot →
+                    </p>
+                </div>
+            `);
+
+            // Add click event
+            marker.on('click', function() {
+                loadPropertyDetails(property.id);
             });
 
-        // Simple popup
-        const popupContent = `
-            <div class="text-sm">
-                <strong class="text-gray-900">${property.owner_name}</strong>
-                <p class="text-gray-600 text-xs mt-1">${property.district?.name || ''}</p>
-                <p class="text-[#3561db] text-xs mt-1 cursor-pointer hover:underline">
-                    Ko'proq ma'lumot →
-                </p>
-            </div>
-        `;
+            markers.push(marker);
+        }
 
-        marker.bindPopup(popupContent);
-        markers.push(marker);
-    });
+        currentIndex = endIndex;
 
-    // Fit bounds if we have markers
-    if (bounds.length > 0) {
-        propertyMap.fitBounds(bounds, { padding: [50, 50] });
+        // Update progress
+        const progress = Math.round((currentIndex / propertiesData.length) * 100);
+        console.log(`Loading markers: ${progress}%`);
+
+        // Continue processing if there are more markers
+        if (currentIndex < propertiesData.length) {
+            setTimeout(processBatch, 10); // Small delay between batches
+        } else {
+            // All markers added, fit bounds
+            if (bounds.length > 0) {
+                setTimeout(() => {
+                    propertyMap.fitBounds(bounds, {
+                        padding: [50, 50],
+                        maxZoom: 15
+                    });
+                }, 100);
+            }
+            console.log(`All ${markers.length} markers loaded successfully!`);
+        }
+    }
+
+    processBatch();
+}
+
+function changeMapStyle() {
+    const style = document.getElementById('mapStyleSelector').value;
+    const layerConfig = mapLayers[style];
+
+    // Remove current layer
+    if (currentLayer) {
+        propertyMap.removeLayer(currentLayer);
+    }
+
+    // Add new layer
+    currentLayer = L.tileLayer(layerConfig.url, {
+        attribution: layerConfig.attribution,
+        maxZoom: 18,
+        minZoom: 9
+    }).addTo(propertyMap);
+
+    // Add overlay for hybrid mode
+    if (style === 'hybrid' && layerConfig.overlay) {
+        L.tileLayer(layerConfig.overlay, {
+            opacity: 0.5,
+            maxZoom: 18
+        }).addTo(propertyMap);
     }
 }
 
-function openPropertySidebar(property) {
-    currentProperty = property;
+function loadPropertyDetails(propertyId) {
     const sidebar = document.getElementById('propertySidebar');
     const content = document.getElementById('sidebarContent');
 
@@ -314,11 +466,28 @@ function openPropertySidebar(property) {
         </div>
     `;
 
-    // Load detailed content
-    setTimeout(() => {
-        content.innerHTML = generateSidebarContent(property);
-        initImageGallery();
-    }, 300);
+    // Fetch full property details via AJAX
+    fetch(`/properties/${propertyId}/details`)
+        .then(response => response.json())
+        .then(property => {
+            currentProperty = property;
+            content.innerHTML = generateSidebarContent(property);
+            initLazyImages();
+        })
+        .catch(error => {
+            console.error('Error loading property:', error);
+            content.innerHTML = `
+                <div class="text-center py-12">
+                    <svg class="w-16 h-16 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-red-600 font-medium">Ma'lumotlarni yuklashda xatolik</p>
+                    <button onclick="loadPropertyDetails(${propertyId})" class="mt-4 px-4 py-2 bg-[#3561db] text-white rounded-lg hover:bg-opacity-90">
+                        Qayta urinish
+                    </button>
+                </div>
+            `;
+        });
 }
 
 function generateSidebarContent(property) {
@@ -350,10 +519,12 @@ function generateSidebarContent(property) {
                 <h3 class="text-sm font-bold text-gray-900 mb-3">Rasmlar (${images.length})</h3>
                 <div class="gallery-container">
                     ${images.slice(0, 4).map((img, idx) => `
-                        <img src="/storage/${img}"
-                             alt="Property image ${idx + 1}"
-                             class="gallery-image"
-                             onclick="openLightbox('${img}')">
+                        <div class="lazy-image rounded-lg" style="aspect-ratio: 1;">
+                            <img data-src="/storage/${img}"
+                                 alt="Property image ${idx + 1}"
+                                 class="gallery-image w-full h-full"
+                                 onclick="openLightbox('${img}')">
+                        </div>
                     `).join('')}
                 </div>
                 ${images.length > 4 ? `
@@ -437,7 +608,7 @@ function generateSidebarContent(property) {
             </div>
         </div>
 
-        <!-- Tenant Information (if exists) -->
+        <!-- Tenant Information -->
         ${property.has_tenant && property.tenant_name ? `
             <div class="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
                 <h3 class="text-sm font-bold text-orange-900 mb-3">Ijarachi ma'lumotlari</h3>
@@ -497,6 +668,33 @@ function generateSidebarContent(property) {
     `;
 }
 
+function initLazyImages() {
+    const images = document.querySelectorAll('.gallery-image');
+
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.getAttribute('data-src');
+
+                if (src) {
+                    img.src = src;
+                    img.onload = () => {
+                        img.classList.add('loaded');
+                        img.parentElement.classList.remove('lazy-image');
+                    };
+                    img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            }
+        });
+    }, {
+        rootMargin: '50px'
+    });
+
+    images.forEach(img => imageObserver.observe(img));
+}
+
 function closeSidebar() {
     document.getElementById('propertySidebar').classList.add('hidden');
     currentProperty = null;
@@ -519,16 +717,12 @@ function resetFilters() {
     window.location.href = '/properties/map';
 }
 
-function initImageGallery() {
-    // Image gallery click handlers are already bound via onclick
-}
-
 function openLightbox(imagePath) {
     const lightbox = document.createElement('div');
     lightbox.className = 'lightbox active';
     lightbox.innerHTML = `
         <button onclick="this.parentElement.remove()"
-                class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70">
+                class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 z-10">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -605,9 +799,11 @@ function showAllImages() {
         }
     };
 
-    // Keyboard navigation
-    document.addEventListener('keydown', function(e) {
-        if (!document.querySelector('.lightbox')) return;
+    const keyHandler = function(e) {
+        if (!document.body.contains(lightbox)) {
+            document.removeEventListener('keydown', keyHandler);
+            return;
+        }
 
         if (e.key === 'ArrowLeft') {
             lightbox.querySelector('.prev-btn').click();
@@ -616,18 +812,21 @@ function showAllImages() {
         } else if (e.key === 'Escape') {
             lightbox.remove();
         }
-    });
+    };
 
+    document.addEventListener('keydown', keyHandler);
     document.body.appendChild(lightbox);
 }
 
 // Handle window resize
+let resizeTimeout;
 window.addEventListener('resize', function() {
-    if (propertyMap) {
-        setTimeout(() => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (propertyMap) {
             propertyMap.invalidateSize();
-        }, 100);
-    }
+        }
+    }, 250);
 });
 
 // Close sidebar on ESC key
@@ -640,4 +839,5 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
 @endsection
