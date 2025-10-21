@@ -219,11 +219,11 @@
                     Mulklar
                 </a>
 
-                <a href="{{ route('properties.map') }}"
+    {{-- <a href="{{ route('properties.map') }}"
                     class="flex items-center px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.map') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700' }}">
                     <i class="fas fa-map-marked-alt mr-3"></i>
                     Xarita
-                </a>
+                </a> --}}
                 @if (auth()->user()->hasPermission('create'))
                     <a href="{{ route('properties.create') }}"
                         class="flex items-center px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.create') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700' }}">
