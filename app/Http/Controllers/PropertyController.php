@@ -932,4 +932,46 @@ class PropertyController extends Controller
             'features' => $features
         ]);
     }
+
+    public function mapView(Request $request)
+    {
+        $districts = District::where('is_active', true)->get();
+
+        // Get filter parameters
+        $districtId = $request->get('district_id');
+        $hasVerified = $request->get('verified_only');
+        $hasTenant = $request->get('has_tenant');
+
+        $query = Property::with(['district', 'mahalla', 'street', 'creator'])
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude');
+
+        // Apply permission filters
+        if (auth()->user()->role !== 'super_admin' && auth()->user()->role !== 'view_only') {
+            if (auth()->user()->role === 'district_admin') {
+                $query->where('district_id', auth()->user()->district_id);
+            } else {
+                $query->where('created_by', auth()->id());
+            }
+        }
+
+        // Apply district filter
+        if ($districtId) {
+            $query->where('district_id', $districtId);
+        }
+
+        // Apply verified filter
+        if ($hasVerified) {
+            $query->where('owner_verified', true);
+        }
+
+        // Apply tenant filter
+        if ($hasTenant !== null && $hasTenant !== '') {
+            $query->where('has_tenant', $hasTenant);
+        }
+
+        $properties = $query->get();
+
+        return view('properties.map', compact('properties', 'districts', 'districtId', 'hasVerified', 'hasTenant'));
+    }
 }

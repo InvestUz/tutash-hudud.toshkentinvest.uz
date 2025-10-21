@@ -12,7 +12,6 @@
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <style>
         .uzbek-font {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -219,6 +218,12 @@
                     <i class="fas fa-building mr-3"></i>
                     Mulklar
                 </a>
+
+                <a href="{{ route('properties.map') }}"
+                    class="flex items-center px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.map') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700' }}">
+                    <i class="fas fa-map-marked-alt mr-3"></i>
+                    Xarita
+                </a>
                 @if (auth()->user()->hasPermission('create'))
                     <a href="{{ route('properties.create') }}"
                         class="flex items-center px-3 py-2 rounded-lg text-sm font-medium {{ request()->routeIs('properties.create') ? 'bg-[#3561db] bg-opacity-10 text-[#3561db]' : 'text-gray-700' }}">
@@ -231,19 +236,20 @@
     </nav>
 
 
-@include('partials.flash-messages')
+    @include('partials.flash-messages')
 
     <!-- Main Content -->
     <main>
         @yield('content')
     </main>
 
- <!-- Footer -->
+    <!-- Footer -->
     <footer class="bg-white border-t border-gray-300 mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <div class="text-center md:text-left">
-                    <p class="text-sm text-gray-600">© {{ date('Y') }} Tutash Hudud Tizimi. Barcha huquqlar himoyalangan.</p>
+                    <p class="text-sm text-gray-600">© {{ date('Y') }} Tutash Hudud Tizimi. Barcha huquqlar
+                        himoyalangan.</p>
                 </div>
                 <div class="flex items-center space-x-6">
                     <a href="#" class="text-sm text-gray-600 hover:text-[#3561db]">Yordam</a>
@@ -254,89 +260,95 @@
         </div>
     </footer>
 
-  <!-- Global Export Modal (Admin Only) -->
-    @if(auth()->check() && auth()->user()->email === 'admin@tutashhudud.uz')
-    <div id="exportModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="border-b border-gray-300 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide">Ma'lumotlarni eksport qilish</h3>
-                    <button onclick="toggleExportModal()" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+    <!-- Global Export Modal (Admin Only) -->
+    @if (auth()->check() && auth()->user()->email === 'admin@tutashhudud.uz')
+        <div id="exportModal"
+            class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="border-b border-gray-300 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide">Ma'lumotlarni eksport
+                            qilish</h3>
+                        <button onclick="toggleExportModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+
+                <form action="{{ route('properties.export') }}" method="POST" class="p-6">
+                    @csrf
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        <div class="flex-1 min-w-[140px]">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Dan:</label>
+                            <input type="date" name="date_from"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db] transition-all duration-200">
+                        </div>
+                        <div class="flex-1 min-w-[140px]">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Gacha:</label>
+                            <input type="date" name="date_to"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db] transition-all duration-200">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-300 rounded-lg p-3 mb-4">
+                        <p class="text-xs text-gray-600">
+                            <svg class="w-4 h-4 inline mr-1 text-[#3561db]" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Agar sana tanlanmasa, barcha ma'lumotlar eksport qilinadi
+                        </p>
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="toggleExportModal()"
+                            class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            Bekor qilish
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-4 py-2 bg-[#3561db] text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition-all duration-200 shadow-sm">
+                            Eksport qilish
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form action="{{ route('properties.export') }}" method="POST" class="p-6">
-                @csrf
-                <div class="flex flex-wrap gap-3 mb-4">
-                    <div class="flex-1 min-w-[140px]">
-                        <label class="block text-xs font-medium text-gray-700 mb-2">Dan:</label>
-                        <input type="date" name="date_from" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db] transition-all duration-200">
-                    </div>
-                    <div class="flex-1 min-w-[140px]">
-                        <label class="block text-xs font-medium text-gray-700 mb-2">Gacha:</label>
-                        <input type="date" name="date_to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3561db] focus:border-[#3561db] transition-all duration-200">
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 border border-gray-300 rounded-lg p-3 mb-4">
-                    <p class="text-xs text-gray-600">
-                        <svg class="w-4 h-4 inline mr-1 text-[#3561db]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Agar sana tanlanmasa, barcha ma'lumotlar eksport qilinadi
-                    </p>
-                </div>
-
-                <div class="flex space-x-3">
-                    <button type="button" onclick="toggleExportModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        Bekor qilish
-                    </button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-[#3561db] text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition-all duration-200 shadow-sm">
-                        Eksport qilish
-                    </button>
-                </div>
-            </form>
         </div>
-    </div>
 
-<script>
-
-
-        // Toggle Export Modal
-        function toggleExportModal() {
-            const modal = document.getElementById('exportModal');
-            if (modal) {
-                modal.classList.toggle('hidden');
-            }
-        }
-
-        // Close modal on ESC key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
+        <script>
+            // Toggle Export Modal
+            function toggleExportModal() {
                 const modal = document.getElementById('exportModal');
-                if (modal && !modal.classList.contains('hidden')) {
-                    modal.classList.add('hidden');
+                if (modal) {
+                    modal.classList.toggle('hidden');
                 }
             }
-        });
 
-        // Close modal on outside click
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('exportModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        this.classList.add('hidden');
+            // Close modal on ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('exportModal');
+                    if (modal && !modal.classList.contains('hidden')) {
+                        modal.classList.add('hidden');
                     }
-                });
-            }
-        });
+                }
+            });
 
-</script>
+            // Close modal on outside click
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('exportModal');
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            this.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+        </script>
     @endif
 
     <!-- Scripts -->
