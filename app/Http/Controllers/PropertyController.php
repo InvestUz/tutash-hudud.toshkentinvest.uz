@@ -7,8 +7,10 @@ use App\Models\District;
 use App\Models\Mahalla;
 use App\Models\Street;
 use App\Services\DidoxApiService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class PropertyController extends Controller
@@ -933,112 +935,158 @@ class PropertyController extends Controller
         ]);
     }
 
-   public function mapView(Request $request)
-{
-    $districts = District::where('is_active', true)->get();
+    public function mapView(Request $request)
+    {
+        $districts = District::where('is_active', true)->get();
 
-    // Get filter parameters
-    $districtId = $request->get('district_id');
-    $hasVerified = $request->get('verified_only');
-    $hasTenant = $request->get('has_tenant');
+        // Get filter parameters
+        $districtId = $request->get('district_id');
+        $hasVerified = $request->get('verified_only');
+        $hasTenant = $request->get('has_tenant');
 
-    // Only select minimal fields needed for map markers
-    $query = Property::select([
-        'id',
-        'latitude',
-        'longitude',
-        'owner_name',
-        'district_id',
-        'owner_verified',
-        'has_tenant'
-    ])
-    ->with(['district:id,name']) // Only load district name
-    ->whereNotNull('latitude')
-    ->whereNotNull('longitude');
+        // Only select minimal fields needed for map markers
+        $query = Property::select([
+            'id',
+            'latitude',
+            'longitude',
+            'owner_name',
+            'district_id',
+            'owner_verified',
+            'has_tenant'
+        ])
+            ->with(['district:id,name']) // Only load district name
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude');
 
-    // Apply permission filters
-    if (auth()->user()->role !== 'super_admin' && auth()->user()->role !== 'view_only') {
-        if (auth()->user()->role === 'district_admin') {
-            $query->where('district_id', auth()->user()->district_id);
-        } else {
-            $query->where('created_by', auth()->id());
+        // Apply permission filters
+        if (auth()->user()->role !== 'super_admin' && auth()->user()->role !== 'view_only') {
+            if (auth()->user()->role === 'district_admin') {
+                $query->where('district_id', auth()->user()->district_id);
+            } else {
+                $query->where('created_by', auth()->id());
+            }
         }
+
+        // Apply district filter
+        if ($districtId) {
+            $query->where('district_id', $districtId);
+        }
+
+        // Apply verified filter
+        if ($hasVerified) {
+            $query->where('owner_verified', true);
+        }
+
+        // Apply tenant filter
+        if ($hasTenant !== null && $hasTenant !== '') {
+            $query->where('has_tenant', $hasTenant);
+        }
+
+        // Get properties with minimal data for better performance
+        $properties = $query->get();
+
+        return view('properties.map', compact('properties', 'districts', 'districtId', 'hasVerified', 'hasTenant'));
     }
 
-    // Apply district filter
-    if ($districtId) {
-        $query->where('district_id', $districtId);
+    /**
+     * Get full property details via AJAX for lazy loading
+     */
+    public function getPropertyDetails(Property $property)
+    {
+        // Check permissions
+        if (!auth()->user()->canViewProperty($property)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Load all relationships
+        $property->load([
+            'district:id,name',
+            'mahalla:id,name',
+            'street:id,name',
+            'creator:id,name,email'
+        ]);
+
+        // Format the response
+        return response()->json([
+            'id' => $property->id,
+            'owner_name' => $property->owner_name,
+            'owner_stir_pinfl' => $property->owner_stir_pinfl,
+            'owner_verified' => $property->owner_verified,
+            'director_name' => $property->director_name,
+            'phone_number' => $property->phone_number,
+            'building_cadastr_number' => $property->building_cadastr_number,
+
+            // Address
+            'district' => $property->district,
+            'mahalla' => $property->mahalla,
+            'street' => $property->street,
+            'house_number' => $property->house_number,
+
+            // Property details
+            'activity_type' => $property->activity_type,
+            'total_area' => $property->total_area,
+            'building_facade_length' => $property->building_facade_length,
+            'usage_purpose' => $property->usage_purpose,
+
+            // Tenant info
+            'has_tenant' => $property->has_tenant,
+            'tenant_name' => $property->tenant_name,
+            'tenant_stir_pinfl' => $property->tenant_stir_pinfl,
+            'tenant_activity_type' => $property->tenant_activity_type,
+
+            // Images
+            'images' => $property->images ?? [],
+
+            // System info
+            'creator' => $property->creator,
+            'created_at' => $property->created_at,
+            'google_maps_url' => $property->google_maps_url,
+        ]);
     }
 
-    // Apply verified filter
-    if ($hasVerified) {
-        $query->where('owner_verified', true);
-    }
-
-    // Apply tenant filter
-    if ($hasTenant !== null && $hasTenant !== '') {
-        $query->where('has_tenant', $hasTenant);
-    }
-
-    // Get properties with minimal data for better performance
-    $properties = $query->get();
-
-    return view('properties.map', compact('properties', 'districts', 'districtId', 'hasVerified', 'hasTenant'));
-}
-
-/**
- * Get full property details via AJAX for lazy loading
- */
-public function getPropertyDetails(Property $property)
+public function updateContract(Request $request, Property $property)
 {
-    // Check permissions
-    if (!auth()->user()->canViewProperty($property)) {
-        return response()->json(['error' => 'Unauthorized'], 403);
+    // Authorization check
+    if (!auth()->user()->can('update', $property)) {
+        abort(403, 'Ruxsat yo\'q');
     }
 
-    // Load all relationships
-    $property->load([
-        'district:id,name',
-        'mahalla:id,name',
-        'street:id,name',
-        'creator:id,name,email'
+    // Validation
+    $validator = Validator::make($request->all(), [
+        'shartnoma_raqami' => 'required|string|max:255',
+        'shartnoma_sanasi' => 'required|date',
+    ], [
+        'shartnoma_raqami.required' => 'Shartnoma raqami kiritilishi shart',
+        'shartnoma_raqami.max' => 'Shartnoma raqami 255 belgidan oshmasligi kerak',
+        'shartnoma_sanasi.required' => 'Shartnoma sanasi kiritilishi shart',
+        'shartnoma_sanasi.date' => 'Noto\'g\'ri sana formati',
     ]);
 
-    // Format the response
-    return response()->json([
-        'id' => $property->id,
-        'owner_name' => $property->owner_name,
-        'owner_stir_pinfl' => $property->owner_stir_pinfl,
-        'owner_verified' => $property->owner_verified,
-        'director_name' => $property->director_name,
-        'phone_number' => $property->phone_number,
-        'building_cadastr_number' => $property->building_cadastr_number,
+    if ($validator->fails()) {
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
+    }
 
-        // Address
-        'district' => $property->district,
-        'mahalla' => $property->mahalla,
-        'street' => $property->street,
-        'house_number' => $property->house_number,
+    try {
+        // Agar yangi ma'lumot kiritilayotgan bo'lsa, tizimga kiritilgan vaqtni hozirgi vaqt qilib qo'yamiz
+        $updateData = [
+            'shartnoma_raqami' => $request->shartnoma_raqami,
+            'shartnoma_sanasi' => $request->shartnoma_sanasi,
+        ];
 
-        // Property details
-        'activity_type' => $property->activity_type,
-        'total_area' => $property->total_area,
-        'building_facade_length' => $property->building_facade_length,
-        'usage_purpose' => $property->usage_purpose,
+        // Agar avval shartnoma ma'lumoti bo'lmagan bo'lsa, tizimga kiritilgan vaqtni yangilaymiz
+        if (!$property->shartnoma_tizimga_kiritilgan_vaqti) {
+            $updateData['shartnoma_tizimga_kiritilgan_vaqti'] = Carbon::now();
+        }
 
-        // Tenant info
-        'has_tenant' => $property->has_tenant,
-        'tenant_name' => $property->tenant_name,
-        'tenant_stir_pinfl' => $property->tenant_stir_pinfl,
-        'tenant_activity_type' => $property->tenant_activity_type,
+        $property->update($updateData);
 
-        // Images
-        'images' => $property->images ?? [],
-
-        // System info
-        'creator' => $property->creator,
-        'created_at' => $property->created_at,
-        'google_maps_url' => $property->google_maps_url,
-    ]);
+        return redirect()->back()->with('success', 'Shartnoma ma\'lumotlari muvaffaqiyatli yangilandi');
+    } catch (\Exception $e) {
+        return redirect()->back()
+            ->with('error', 'Xatolik yuz berdi: ' . $e->getMessage())
+            ->withInput();
+    }
 }
 }

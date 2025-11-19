@@ -18,7 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/properties/{property}/details', [PropertyController::class, 'getPropertyDetails']);
 
 
-  Route::prefix('users')->name('users.')->group(function () {
+    Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/create', [UserController::class, 'create'])->name('create');
         Route::post('/', [UserController::class, 'store'])->name('store');
@@ -43,6 +43,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/properties/export', [PropertyExportController::class, 'exportToZip'])
         ->name('properties.export');
+
+    Route::post('/properties/{property}/update-contract', [PropertyController::class, 'updateContract'])
+        ->name('properties.update-contract');
 });
 
 // API Routes for AJAX

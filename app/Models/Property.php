@@ -79,7 +79,11 @@ class Property extends Model
         'tenant_verified',
 
         // Creator
-        'created_by'
+        'created_by',
+        // Contract Information
+        'shartnoma_raqami',
+        'shartnoma_sanasi',
+        'shartnoma_tizimga_kiritilgan_vaqti',
     ];
 
     protected $casts = [
