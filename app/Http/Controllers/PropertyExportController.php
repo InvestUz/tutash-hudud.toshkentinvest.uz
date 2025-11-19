@@ -118,6 +118,7 @@ class PropertyExportController extends Controller
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ruxsatnoma</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Shartnoma raqami</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Shartnoma sanasi</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Shartnoma summasi</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Akt fayli</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Loyiha kodi fayli</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Ijarachi bormi</style>',
@@ -163,6 +164,8 @@ class PropertyExportController extends Controller
                 $property->has_permit,
                 $property->shartnoma_raqami ?? '',
                 $property->shartnoma_sanasi ? Carbon::parse($property->shartnoma_sanasi)->format('d.m.Y') : '',
+                $property->shartnoma_summasi ?? '',
+
                 $property->act_file ? 'Mavjud' : 'Mavjud emas',
                 $property->design_code_file ? 'Mavjud' : 'Mavjud emas',
                 $property->has_tenant ? 'Ha' : "Yo'q",

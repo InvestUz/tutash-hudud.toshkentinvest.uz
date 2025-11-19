@@ -84,6 +84,8 @@ class Property extends Model
         'shartnoma_raqami',
         'shartnoma_sanasi',
         'shartnoma_tizimga_kiritilgan_vaqti',
+       'shartnoma_summasi',
+
     ];
 
     protected $casts = [

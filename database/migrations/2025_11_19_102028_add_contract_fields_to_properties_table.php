@@ -12,6 +12,7 @@ return new class extends Migration
             $table->string('shartnoma_raqami')->nullable()->after('owner_verified');
             $table->date('shartnoma_sanasi')->nullable()->after('shartnoma_raqami');
             $table->timestamp('shartnoma_tizimga_kiritilgan_vaqti')->nullable()->after('shartnoma_sanasi');
+            $table->decimal('shartnoma_summasi', 15, 2)->nullable()->after('shartnoma_sanasi');
 
             // Index for faster searches
             $table->index('shartnoma_raqami');
@@ -25,7 +26,8 @@ return new class extends Migration
             $table->dropColumn([
                 'shartnoma_raqami',
                 'shartnoma_sanasi',
-                'shartnoma_tizimga_kiritilgan_vaqti'
+                'shartnoma_tizimga_kiritilgan_vaqti',
+                'shartnoma_summasi',
             ]);
         });
     }

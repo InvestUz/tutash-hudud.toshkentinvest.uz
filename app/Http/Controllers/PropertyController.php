@@ -1055,11 +1055,15 @@ public function updateContract(Request $request, Property $property)
     $validator = Validator::make($request->all(), [
         'shartnoma_raqami' => 'required|string|max:255',
         'shartnoma_sanasi' => 'required|date',
+        'shartnoma_summasi' => 'required|numeric|min:0',
     ], [
         'shartnoma_raqami.required' => 'Shartnoma raqami kiritilishi shart',
         'shartnoma_raqami.max' => 'Shartnoma raqami 255 belgidan oshmasligi kerak',
         'shartnoma_sanasi.required' => 'Shartnoma sanasi kiritilishi shart',
         'shartnoma_sanasi.date' => 'Noto\'g\'ri sana formati',
+        'shartnoma_summasi.required' => 'Shartnoma summasi kiritilishi shart',
+        'shartnoma_summasi.numeric' => 'Shartnoma summasi raqam bo\'lishi kerak',
+        'shartnoma_summasi.min' => 'Shartnoma summasi manfiy bo\'lmasligi kerak',
     ]);
 
     if ($validator->fails()) {
@@ -1073,6 +1077,7 @@ public function updateContract(Request $request, Property $property)
         $updateData = [
             'shartnoma_raqami' => $request->shartnoma_raqami,
             'shartnoma_sanasi' => $request->shartnoma_sanasi,
+            'shartnoma_summasi' => $request->shartnoma_summasi,
         ];
 
         // Agar avval shartnoma ma'lumoti bo'lmagan bo'lsa, tizimga kiritilgan vaqtni yangilaymiz

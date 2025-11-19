@@ -906,91 +906,104 @@
                                 </button>
                             @endif
 
-                            <!-- Contract Form (Hidden by default) -->
-                            <form id="contractForm" action="{{ route('properties.update-contract', $property) }}"
-                                method="POST" class="mt-4 space-y-4 {{ $property->shartnoma_raqami ? 'hidden' : '' }}">
-                                @csrf
+                          <!-- Contract Form (Hidden by default) -->
+<form id="contractForm" action="{{ route('properties.update-contract', $property) }}"
+    method="POST" class="mt-4 space-y-4 {{ $property->shartnoma_raqami ? 'hidden' : '' }}">
+    @csrf
 
-                                <!-- Shartnoma raqami -->
-                                <div>
-                                    <label for="shartnoma_raqami" class="block text-sm font-medium text-gray-700">
-                                        Shartnoma raqami <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" name="shartnoma_raqami" id="shartnoma_raqami"
-                                        value="{{ old('shartnoma_raqami', $property->shartnoma_raqami) }}"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('shartnoma_raqami') border-red-500 @enderror"
-                                        placeholder="Masalan: SH-2024-001" required>
-                                    @error('shartnoma_raqami')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
+    <!-- Shartnoma raqami -->
+    <div>
+        <label for="shartnoma_raqami" class="block text-sm font-medium text-gray-700">
+            Shartnoma raqami <span class="text-red-500">*</span>
+        </label>
+        <input type="text" name="shartnoma_raqami" id="shartnoma_raqami"
+            value="{{ old('shartnoma_raqami', $property->shartnoma_raqami) }}"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('shartnoma_raqami') border-red-500 @enderror"
+            placeholder="Masalan: SH-2024-001" required>
+        @error('shartnoma_raqami')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
 
-                                <!-- Shartnoma sanasi -->
-                                <div>
-                                    <label for="shartnoma_sanasi" class="block text-sm font-medium text-gray-700">
-                                        Shartnoma sanasi <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="date" name="shartnoma_sanasi" id="shartnoma_sanasi"
-                                        value="{{ old('shartnoma_sanasi', $property->shartnoma_sanasi ? \Carbon\Carbon::parse($property->shartnoma_sanasi)->format('Y-m-d') : '') }}"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('shartnoma_sanasi') border-red-500 @enderror"
-                                        required>
-                                    @error('shartnoma_sanasi')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
+    <!-- Shartnoma sanasi -->
+    <div>
+        <label for="shartnoma_sanasi" class="block text-sm font-medium text-gray-700">
+            Shartnoma sanasi <span class="text-red-500">*</span>
+        </label>
+        <input type="date" name="shartnoma_sanasi" id="shartnoma_sanasi"
+            value="{{ old('shartnoma_sanasi', $property->shartnoma_sanasi ? \Carbon\Carbon::parse($property->shartnoma_sanasi)->format('Y-m-d') : '') }}"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('shartnoma_sanasi') border-red-500 @enderror"
+            required>
+        @error('shartnoma_sanasi')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
 
-                                <!-- Buttons -->
-                                <div class="flex space-x-2">
-                                    <button type="submit"
-                                        class="flex-1 inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        Saqlash
-                                    </button>
-                                    <button type="button" id="cancelContractBtn"
-                                        class="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                        Bekor qilish
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    <!-- Shartnoma summasi -->
+    <div>
+        <label for="shartnoma_summasi" class="block text-sm font-medium text-gray-700">
+            Shartnoma summasi (so'm) <span class="text-red-500">*</span>
+        </label>
+        <input type="number" name="shartnoma_summasi" id="shartnoma_summasi"
+            value="{{ old('shartnoma_summasi', $property->shartnoma_summasi) }}"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('shartnoma_summasi') border-red-500 @enderror"
+            placeholder="Masalan: 50000000" step="0.01" min="0" required>
+        @error('shartnoma_summasi')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+        <p class="mt-1 text-xs text-gray-500">Shartnoma qiymatini so'mda kiriting</p>
+    </div>
 
-                    <script>
-                        // Contract form toggle - Pure JavaScript, no jQuery
-                        (function() {
-                            const contractForm = document.getElementById('contractForm');
-                            const editBtn = document.getElementById('editContractBtn');
-                            const addBtn = document.getElementById('addContractBtn');
-                            const cancelBtn = document.getElementById('cancelContractBtn');
+    <!-- Buttons -->
+    <div class="flex space-x-2">
+        <button type="submit"
+            class="flex-1 inline-flex justify-center items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 13l4 4L19 7" />
+            </svg>
+            Saqlash
+        </button>
+        <button type="button" id="cancelContractBtn"
+            class="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Bekor qilish
+        </button>
+    </div>
+</form>
 
-                            function toggleForm() {
-                                if (contractForm) {
-                                    contractForm.classList.toggle('hidden');
-                                }
-                            }
+<script>
+    // Contract form toggle - Pure JavaScript, no jQuery
+    (function() {
+        const contractForm = document.getElementById('contractForm');
+        const editBtn = document.getElementById('editContractBtn');
+        const addBtn = document.getElementById('addContractBtn');
+        const cancelBtn = document.getElementById('cancelContractBtn');
 
-                            if (editBtn) {
-                                editBtn.addEventListener('click', toggleForm);
-                            }
+        function toggleForm() {
+            if (contractForm) {
+                contractForm.classList.toggle('hidden');
+            }
+        }
 
-                            if (addBtn) {
-                                addBtn.addEventListener('click', toggleForm);
-                            }
+        if (editBtn) {
+            editBtn.addEventListener('click', toggleForm);
+        }
 
-                            if (cancelBtn) {
-                                cancelBtn.addEventListener('click', toggleForm);
-                            }
-                        })();
-                    </script>
+        if (addBtn) {
+            addBtn.addEventListener('click', toggleForm);
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', toggleForm);
+        }
+    })();
+</script>
                     <!-- Meta Information -->
                     <div class="bg-white shadow rounded-lg">
                         <div class="px-6 py-4 border-b border-gray-200">
