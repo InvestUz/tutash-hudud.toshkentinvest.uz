@@ -753,69 +753,129 @@
                     </div>
 
                     <!-- Files -->
-                    @if ($property->act_file_exists || $property->design_code_file_exists)
-                        <div class="bg-white shadow rounded-lg">
-                            <div class="px-6 py-4 border-b border-gray-200">
-                                <h3 class="text-sm font-medium text-gray-900 flex items-center">
-                                    <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    Biriktirtilgan fayllar
-                                </h3>
-                            </div>
-                            <div class="px-6 py-4">
-                                <div class="space-y-3">
-                                    @if ($property->act_file_exists)
-                                        <div
-                                            class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                            <div class="flex items-center">
-                                                <svg class="w-5 h-5 text-red-600 mr-3" fill="none"
-                                                    stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                <div>
-                                                    <p class="text-sm font-medium text-gray-900">Akt fayli</p>
-                                                    <p class="text-xs text-gray-500">
-                                                        {{ number_format($property->act_file_size / 1024, 1) }} KB</p>
-                                                </div>
+                    <div class="bg-white shadow rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-sm font-medium text-gray-900 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Biriktirtilgan fayllar
+                            </h3>
+                        </div>
+                        <div class="px-6 py-4">
+                            <div class="space-y-3">
+                                <!-- Act File -->
+                                @if ($property->act_file_exists)
+                                    <div
+                                        class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 text-red-600 mr-3" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Akt fayli</p>
+                                                <p class="text-xs text-gray-500">
+                                                    {{ number_format($property->act_file_size / 1024, 1) }} KB</p>
                                             </div>
-                                            <a href="{{ asset('storage/' . $property->act_file) }}" target="_blank"
-                                                class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                                Ochish
-                                            </a>
                                         </div>
-                                    @endif
+                                        <a href="{{ asset('storage/' . $property->act_file) }}" target="_blank"
+                                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                            Ochish
+                                        </a>
+                                    </div>
+                                @else
+                                    <div class="p-3 border border-gray-200 rounded-lg">
+                                        <form action="{{ route('properties.upload-file', $property) }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <input type="hidden" name="file_type" value="act_file">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center flex-1">
+                                                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    <div class="flex-1">
+                                                        <p class="text-sm font-medium text-gray-900 mb-2">Akt fayli (ixtiyoriy)</p>
+                                                        <input type="file" name="file" accept=".pdf,.doc,.docx"
+                                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                            required>
+                                                        <p class="text-xs text-gray-500 mt-1">PDF, DOC, DOCX (max 10MB)</p>
+                                                    </div>
+                                                </div>
+                                                <button type="submit"
+                                                    class="ml-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                                    </svg>
+                                                    Yuklash
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endif
 
-                                    @if ($property->design_code_file_exists)
-                                        <div
-                                            class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                            <div class="flex items-center">
-                                                <svg class="w-5 h-5 text-blue-600 mr-3" fill="none"
-                                                    stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                                                </svg>
-                                                <div>
-                                                    <p class="text-sm font-medium text-gray-900">Loyiha kodi</p>
-                                                    <p class="text-xs text-gray-500">
-                                                        {{ number_format($property->design_code_file_size / 1024, 1) }} KB
-                                                    </p>
-                                                </div>
+                                <!-- Design Code File -->
+                                @if ($property->design_code_file_exists)
+                                    <div
+                                        class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 text-blue-600 mr-3" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Loyiha kodi</p>
+                                                <p class="text-xs text-gray-500">
+                                                    {{ number_format($property->design_code_file_size / 1024, 1) }} KB
+                                                </p>
                                             </div>
-                                            <a href="{{ asset('storage/' . $property->design_code_file) }}"
-                                                target="_blank"
-                                                class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                                Ochish
-                                            </a>
                                         </div>
-                                    @endif
-                                </div>
+                                        <a href="{{ asset('storage/' . $property->design_code_file) }}"
+                                            target="_blank"
+                                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                            Ochish
+                                        </a>
+                                    </div>
+                                @else
+                                    <div class="p-3 border border-gray-200 rounded-lg">
+                                        <form action="{{ route('properties.upload-file', $property) }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <input type="hidden" name="file_type" value="design_code_file">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center flex-1">
+                                                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                                    </svg>
+                                                    <div class="flex-1">
+                                                        <p class="text-sm font-medium text-gray-900 mb-2">Loyiha kodi fayli (ixtiyoriy)</p>
+                                                        <input type="file" name="file" accept=".pdf,.doc,.docx,.dwg,.zip"
+                                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                            required>
+                                                        <p class="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, DWG, ZIP (max 10MB)</p>
+                                                    </div>
+                                                </div>
+                                                <button type="submit"
+                                                    class="ml-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                                    </svg>
+                                                    Yuklash
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endif
                             </div>
                         </div>
-                    @endif
+                    </div>
 
                     <!-- Map -->
                     @if ($property->latitude && $property->longitude)

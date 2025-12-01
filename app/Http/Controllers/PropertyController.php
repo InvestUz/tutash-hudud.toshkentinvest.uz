@@ -1094,4 +1094,59 @@ public function updateContract(Request $request, Property $property)
             ->withInput();
     }
 }
+
+public function uploadFile(Request $request, Property $property)
+{
+    // Authorization check
+    if (!auth()->user()->canViewProperty($property)) {
+        abort(403, 'Bu mulkni tahrirlash uchun ruxsatingiz yo\'q');
+    }
+
+    // Validate file type parameter
+    $request->validate([
+        'file_type' => 'required|in:act_file,design_code_file',
+    ]);
+
+    $fileType = $request->file_type;
+
+    // Define validation rules based on file type
+    if ($fileType === 'act_file') {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,doc,docx|max:10240',
+        ], [
+            'file.required' => 'Fayl tanlash shart',
+            'file.mimes' => 'Akt fayli PDF, DOC, DOCX formatida bo\'lishi kerak',
+            'file.max' => 'Akt fayli 10MB dan oshmasligi kerak',
+        ]);
+    } else {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,doc,docx,dwg,zip|max:10240',
+        ], [
+            'file.required' => 'Fayl tanlash shart',
+            'file.mimes' => 'Loyiha kodi fayli PDF, DOC, DOCX, DWG, ZIP formatida bo\'lishi kerak',
+            'file.max' => 'Loyiha kodi fayli 10MB dan oshmasligi kerak',
+        ]);
+    }
+
+    try {
+        // Delete old file if exists
+        if ($property->$fileType) {
+            Storage::disk('public')->delete($property->$fileType);
+        }
+
+        // Store new file
+        $folder = $fileType === 'act_file' ? 'properties/acts' : 'properties/design_codes';
+        $filePath = $request->file('file')->store($folder, 'public');
+
+        // Update property
+        $property->update([
+            $fileType => $filePath,
+        ]);
+
+        $fileName = $fileType === 'act_file' ? 'Akt fayli' : 'Loyiha kodi fayli';
+        return redirect()->back()->with('success', $fileName . ' muvaffaqiyatli yuklandi');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+    }
+}
 }

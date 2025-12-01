@@ -46,6 +46,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/properties/{property}/update-contract', [PropertyController::class, 'updateContract'])
         ->name('properties.update-contract');
+
+    Route::post('/properties/{property}/upload-file', [PropertyController::class, 'uploadFile'])
+        ->name('properties.upload-file');
 });
 
 // API Routes for AJAX
