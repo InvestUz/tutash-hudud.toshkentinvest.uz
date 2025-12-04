@@ -59,7 +59,7 @@
                             @endif
 
                             <!-- Action buttons -->
-                            {{-- @can('update', $property)
+                            @can('update', $property)
                                 <a href="{{ route('properties.edit', $property) }}"
                                    class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@
                                     </svg>
                                     Tahrirlash
                                 </a>
-                            @endcan --}}
+                            @endcan
 
                             @if ($property->google_maps_url)
                                 <a href="{{ $property->google_maps_url }}" target="_blank"
