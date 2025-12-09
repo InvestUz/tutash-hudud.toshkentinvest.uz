@@ -132,6 +132,7 @@ class PropertyExportController extends Controller
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Kenglik (GPS)</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Uzunlik (GPS)</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yaratilgan sana</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yangilangan sana</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yaratuvchi</style>',
         ]];
 
@@ -179,6 +180,7 @@ class PropertyExportController extends Controller
                 $property->latitude,
                 $property->longitude,
                 $property->created_at->format('Y-m-d H:i:s'),
+                $property->updated_at->format('Y-m-d H:i:s'),
                 $property->creator->name ?? ''
             ];
         }
