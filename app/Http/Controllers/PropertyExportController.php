@@ -183,7 +183,7 @@ class PropertyExportController extends Controller
                 $property->created_at->format('Y-m-d H:i:s'),
                 $property->updated_at->format('Y-m-d H:i:s'),
                 $property->creator->name ?? '',
-                $property->needs_monitoring ? 'Назоратга олиш керак' : 'Назоратга олиш керак эмас'
+                $property->needs_monitoring ? 'Муаммоли' : 'Муаммоли эмас'
             ];
         }
 

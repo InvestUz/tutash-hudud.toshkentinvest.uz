@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('properties', function (Blueprint $table) {
-            $table->boolean('needs_monitoring')->default(false)->after('created_by')->comment('Назоратга олиш керак');
+            $table->boolean('needs_monitoring')->default(false)->after('created_by')->comment('Муаммоли');
         });
     }
 

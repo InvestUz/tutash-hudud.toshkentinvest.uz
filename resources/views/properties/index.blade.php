@@ -130,7 +130,7 @@
                             <button type="button"
                                     onclick="toggleMonitoring({{ $property->id }}, this)"
                                     class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 {{ $property->needs_monitoring ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-green-100 text-gray-800 hover:bg-gray-200' }}">
-                                <span class="monitoring-text">{{ $property->needs_monitoring ? 'Назоратга олиш керак' : 'Назоратга олиш керак эмас' }}</span>
+                                <span class="monitoring-text">{{ $property->needs_monitoring ? 'Муаммоли' : 'Муаммоли эмас' }}</span>
                             </button>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

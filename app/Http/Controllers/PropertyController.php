@@ -1168,8 +1168,8 @@ public function toggleMonitoring(Property $property)
         $property->save();
 
         $status = $property->needs_monitoring
-            ? 'Назоратга олиш керак'
-            : 'Назоратга олиш керак эмас';
+            ? 'Муаммоли'
+            : 'Муаммоли эмас';
 
         if (request()->ajax()) {
             return response()->json([
