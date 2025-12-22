@@ -135,6 +135,8 @@ class PropertyExportController extends Controller
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yangilangan sana</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yaratuvchi</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Назорат ҳолати</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Муаммо сабаби</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Муаммо файли</style>',
         ]];
 
         // Add data rows
@@ -183,7 +185,9 @@ class PropertyExportController extends Controller
                 $property->created_at->format('Y-m-d H:i:s'),
                 $property->updated_at->format('Y-m-d H:i:s'),
                 $property->creator->name ?? '',
-                $property->needs_monitoring ? 'Муаммоли' : 'Муаммоли эмас'
+                $property->needs_monitoring ? 'Муаммоли' : 'Муаммоли эмас',
+                $property->monitoring_comment ?? '',
+                $property->monitoring_file ? 'Mavjud' : 'Mavjud emas'
             ];
         }
 

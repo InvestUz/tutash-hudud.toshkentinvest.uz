@@ -715,6 +715,105 @@
                 <!-- Sidebar -->
                 <div class="space-y-6">
 
+                    <!-- Monitoring Status Section -->
+                    <div class="bg-white shadow rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-sm font-medium text-gray-900 flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                Муаммо ҳолати
+                            </h3>
+                        </div>
+                        <div class="px-6 py-4">
+                            <!-- Current Status Display -->
+                            <div class="mb-4">
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium {{ $property->needs_monitoring ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                    {{ $property->needs_monitoring ? 'Муаммоли' : 'Муаммоли эмас' }}
+                                </span>
+                            </div>
+
+                            <!-- Show existing monitoring details if problem exists -->
+                            @if($property->needs_monitoring)
+                                @if($property->monitoring_comment)
+                                    <div class="mb-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                        <p class="text-xs font-medium text-red-700 mb-1">Муаммо сабаби:</p>
+                                        <p class="text-sm text-red-900">{{ $property->monitoring_comment }}</p>
+                                    </div>
+                                @endif
+                                @if($property->monitoring_file)
+                                    <div class="mb-3 flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            <span class="text-sm text-gray-900">Муаммо файли</span>
+                                        </div>
+                                        <a href="{{ asset('storage/' . $property->monitoring_file) }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ochish</a>
+                                    </div>
+                                @endif
+                            @endif
+
+                            <!-- Update Form -->
+                            <form action="{{ route('properties.update-monitoring', $property) }}" method="POST" enctype="multipart/form-data" id="monitoringForm">
+                                @csrf
+
+                                <!-- Status Select -->
+                                <div class="mb-4">
+                                    <label for="needs_monitoring" class="block text-sm font-medium text-gray-700 mb-2">Ҳолатни танланг</label>
+                                    <select name="needs_monitoring" id="needs_monitoring"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                        onchange="toggleMonitoringFields()">
+                                        <option value="0" {{ !$property->needs_monitoring ? 'selected' : '' }}>Муаммоли эмас</option>
+                                        <option value="1" {{ $property->needs_monitoring ? 'selected' : '' }}>Муаммоли</option>
+                                    </select>
+                                </div>
+
+                                <!-- Problem Details (shown only when "Муаммоли" is selected) -->
+                                <div id="monitoringDetails" class="{{ $property->needs_monitoring ? '' : 'hidden' }}">
+                                    <!-- Comment -->
+                                    <div class="mb-4">
+                                        <label for="monitoring_comment" class="block text-sm font-medium text-gray-700 mb-2">Муаммо сабаби</label>
+                                        <textarea name="monitoring_comment" id="monitoring_comment" rows="3"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Муаммо ҳақида изоҳ ёзинг...">{{ old('monitoring_comment', $property->monitoring_comment) }}</textarea>
+                                    </div>
+
+                                    <!-- File Upload -->
+                                    <div class="mb-4">
+                                        <label for="monitoring_file" class="block text-sm font-medium text-gray-700 mb-2">Файл юклаш (ихтиёрий)</label>
+                                        <input type="file" name="monitoring_file" id="monitoring_file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
+                                        <p class="text-xs text-gray-500 mt-1">PDF, JPG, PNG (max 10MB)</p>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <button type="submit"
+                                    class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Saqlash
+                                </button>
+                            </form>
+
+                            <script>
+                                function toggleMonitoringFields() {
+                                    const select = document.getElementById('needs_monitoring');
+                                    const details = document.getElementById('monitoringDetails');
+
+                                    if (select.value === '1') {
+                                        details.classList.remove('hidden');
+                                    } else {
+                                        details.classList.add('hidden');
+                                    }
+                                }
+                            </script>
+                        </div>
+                    </div>
+
                     <!-- Quick Stats -->
                     <div class="bg-white shadow rounded-lg">
                         <div class="px-6 py-4 border-b border-gray-200">

@@ -1188,4 +1188,64 @@ public function toggleMonitoring(Property $property)
         return redirect()->back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
     }
 }
+
+/**
+ * Update monitoring status with file and comment
+ */
+public function updateMonitoring(Request $request, Property $property)
+{
+    // Check permissions
+    if (!auth()->user()->canViewProperty($property)) {
+        abort(403, 'Bu mulkni tahrirlash uchun ruxsatingiz yo\'q');
+    }
+
+    $rules = [
+        'needs_monitoring' => 'required|boolean',
+        'monitoring_comment' => 'nullable|string|max:1000',
+        'monitoring_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+    ];
+
+    $messages = [
+        'needs_monitoring.required' => 'Holatni tanlash shart',
+        'monitoring_file.mimes' => 'Fayl PDF, JPG yoki PNG formatida bo\'lishi kerak',
+        'monitoring_file.max' => 'Fayl hajmi 10MB dan oshmasligi kerak',
+        'monitoring_comment.max' => 'Izoh 1000 belgidan oshmasligi kerak',
+    ];
+
+    $validated = $request->validate($rules, $messages);
+
+    try {
+        $property->needs_monitoring = $validated['needs_monitoring'];
+
+        // If status is "Муаммоли" (true), handle file and comment
+        if ($validated['needs_monitoring']) {
+            // Handle file upload
+            if ($request->hasFile('monitoring_file')) {
+                // Delete old file if exists
+                if ($property->monitoring_file) {
+                    Storage::disk('public')->delete($property->monitoring_file);
+                }
+                $property->monitoring_file = $request->file('monitoring_file')->store('properties/monitoring', 'public');
+            }
+
+            // Save comment
+            $property->monitoring_comment = $validated['monitoring_comment'] ?? $property->monitoring_comment;
+        } else {
+            // If "Муаммоли эмас", clear file and comment
+            if ($property->monitoring_file) {
+                Storage::disk('public')->delete($property->monitoring_file);
+            }
+            $property->monitoring_file = null;
+            $property->monitoring_comment = null;
+        }
+
+        $property->save();
+
+        $status = $property->needs_monitoring ? 'Муаммоли' : 'Муаммоли эмас';
+        return redirect()->back()->with('success', 'Holat yangilandi: ' . $status);
+
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage())->withInput();
+    }
+}
 }

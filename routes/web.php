@@ -52,6 +52,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::patch('/properties/{property}/toggle-monitoring', [PropertyController::class, 'toggleMonitoring'])
         ->name('properties.toggle-monitoring');
+
+    Route::post('/properties/{property}/update-monitoring', [PropertyController::class, 'updateMonitoring'])
+        ->name('properties.update-monitoring');
 });
 
 // API Routes for AJAX

@@ -83,6 +83,8 @@ class Property extends Model
 
         // Monitoring status
         'needs_monitoring',
+        'monitoring_file',
+        'monitoring_comment',
         // Contract Information
         'shartnoma_raqami',
         'shartnoma_sanasi',
@@ -111,6 +113,7 @@ class Property extends Model
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'needs_monitoring' => 'boolean',
+        'monitoring_comment' => 'string',
     ];
 
     // Relationships
