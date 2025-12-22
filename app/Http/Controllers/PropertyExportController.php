@@ -134,6 +134,7 @@ class PropertyExportController extends Controller
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yaratilgan sana</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yangilangan sana</style>',
             '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Yaratuvchi</style>',
+            '<style font-size="14" font-weight="bold" bgcolor="#4472C4" color="#FFFFFF">Назорат ҳолати</style>',
         ]];
 
         // Add data rows
@@ -181,7 +182,8 @@ class PropertyExportController extends Controller
                 $property->longitude,
                 $property->created_at->format('Y-m-d H:i:s'),
                 $property->updated_at->format('Y-m-d H:i:s'),
-                $property->creator->name ?? ''
+                $property->creator->name ?? '',
+                $property->needs_monitoring ? 'Назоратга олиш керак' : 'Назоратга олиш керак эмас'
             ];
         }
 

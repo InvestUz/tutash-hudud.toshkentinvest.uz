@@ -86,6 +86,9 @@
                         Ijarachi
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Nazorat holati
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Harakatlar
                     </th>
                 </tr>
@@ -123,6 +126,13 @@
                                 </span>
                             @endif
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button type="button"
+                                    onclick="toggleMonitoring({{ $property->id }}, this)"
+                                    class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 {{ $property->needs_monitoring ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-green-100 text-gray-800 hover:bg-gray-200' }}">
+                                <span class="monitoring-text">{{ $property->needs_monitoring ? 'Назоратга олиш керак' : 'Назоратга олиш керак эмас' }}</span>
+                            </button>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
                                 <a href="{{ route('properties.show', $property) }}"
@@ -132,7 +142,6 @@
                                     <a href="{{ route('properties.edit', $property) }}"
                                        class="text-green-600 hover:text-green-900">Tahrirlash</a>
                                 {{-- @endif --}}
-
                                 {{-- @if(auth()->user()->hasPermission('delete'))
                                     <form method="POST" action="{{ route('properties.destroy', $property) }}"
                                           class="inline" onsubmit="return confirm('Rostdan ham o\'chirmoqchimisiz?')">
@@ -148,7 +157,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
                             <div class="flex flex-col items-center py-8">
                                 <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H7m2 0v-6m10 6v-6M7 7h10M7 11h10"></path>
@@ -170,4 +179,50 @@
         </div>
     @endif
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function toggleMonitoring(propertyId, button) {
+    // Add loading state
+    button.disabled = true;
+    button.classList.add('opacity-50');
+
+    fetch(`/properties/${propertyId}/toggle-monitoring`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button appearance
+            const textSpan = button.querySelector('.monitoring-text');
+            textSpan.textContent = data.status;
+
+            // Toggle classes
+            if (data.needs_monitoring) {
+                button.classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
+                button.classList.add('bg-red-100', 'text-red-800', 'hover:bg-red-200');
+            } else {
+                button.classList.remove('bg-red-100', 'text-red-800', 'hover:bg-red-200');
+                button.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200');
+            }
+        } else {
+            alert('Xatolik yuz berdi');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Xatolik yuz berdi');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.classList.remove('opacity-50');
+    });
+}
+</script>
 @endsection

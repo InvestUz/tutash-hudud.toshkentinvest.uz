@@ -1149,4 +1149,43 @@ public function uploadFile(Request $request, Property $property)
         return redirect()->back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
     }
 }
+
+/**
+ * Toggle monitoring status for a property
+ */
+public function toggleMonitoring(Property $property)
+{
+    // Check permissions
+    if (!auth()->user()->canViewProperty($property)) {
+        if (request()->ajax()) {
+            return response()->json(['error' => 'Ruxsat yo\'q'], 403);
+        }
+        abort(403, 'Bu mulkni tahrirlash uchun ruxsatingiz yo\'q');
+    }
+
+    try {
+        $property->needs_monitoring = !$property->needs_monitoring;
+        $property->save();
+
+        $status = $property->needs_monitoring
+            ? 'Назоратга олиш керак'
+            : 'Назоратга олиш керак эмас';
+
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'needs_monitoring' => $property->needs_monitoring,
+                'status' => $status,
+                'message' => 'Holat yangilandi: ' . $status
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Holat yangilandi: ' . $status);
+    } catch (\Exception $e) {
+        if (request()->ajax()) {
+            return response()->json(['error' => 'Xatolik yuz berdi: ' . $e->getMessage()], 500);
+        }
+        return redirect()->back()->with('error', 'Xatolik yuz berdi: ' . $e->getMessage());
+    }
+}
 }

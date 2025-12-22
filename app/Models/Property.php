@@ -80,6 +80,9 @@ class Property extends Model
 
         // Creator
         'created_by',
+
+        // Monitoring status
+        'needs_monitoring',
         // Contract Information
         'shartnoma_raqami',
         'shartnoma_sanasi',
@@ -107,6 +110,7 @@ class Property extends Model
         'distance_to_sidewalk' => 'decimal:2',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
+        'needs_monitoring' => 'boolean',
     ];
 
     // Relationships
