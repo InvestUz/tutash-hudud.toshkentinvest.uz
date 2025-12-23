@@ -403,11 +403,11 @@
 
                 <!-- Manual area input -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2"">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         Umumiy maydon (tekshirish uchun) (m²) <span class="text-red-500">* (Uzunlik/Kenglik yordamida shakillanadi)</span>
                     </label>
-                    <input type="number" name="total_area" id="total_area"
-                        value="{{ old('total_area') }}"  required
+                    <input type="number" step="any" name="total_area" id="total_area"
+                        value="{{ old('total_area') }}" required
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('total_area') border-red-500 @enderror"
                         placeholder="Yuqorida hisoblangan qiymat bilan taqqoslang">
                     <p class="text-xs text-gray-500 mt-1">Bu maydon yuqoridagi avtomatik hisoblash bilan taqqoslash uchun</p>
