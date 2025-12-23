@@ -311,7 +311,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Uzunlik (m) <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" step="0.01" name="area_length" id="area_length"
+                            <input type="number" step="any" name="area_length" id="area_length"
                                 value="{{ old('area_length', '0') }}"
                                 oninput="calculateFromRectangle()"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
@@ -322,7 +322,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Kenglik (m) <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" step="0.01" name="area_width" id="area_width"
+                            <input type="number" step="any" name="area_width" id="area_width"
                                 value="{{ old('area_width', '0') }}"
                                 oninput="calculateFromRectangle()"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
@@ -430,7 +430,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Fasad uzunligi (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="building_facade_length" value="{{ old('building_facade_length') }}" required
+                        <input type="number" step="any" name="building_facade_length" value="{{ old('building_facade_length') }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('building_facade_length') border-red-500 @enderror"
                             placeholder="4">
                         @error('building_facade_length')
@@ -442,7 +442,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Yozgi terassa tomonlari (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="summer_terrace_sides" value="{{ old('summer_terrace_sides') }}" required
+                        <input type="number" step="any" name="summer_terrace_sides" value="{{ old('summer_terrace_sides') }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('summer_terrace_sides') border-red-500 @enderror"
                             placeholder="1.2">
                         @error('summer_terrace_sides')
@@ -454,7 +454,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Yo'lgacha masofa (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="distance_to_roadway" value="{{ old('distance_to_roadway') }}" required
+                        <input type="number" step="any" name="distance_to_roadway" value="{{ old('distance_to_roadway') }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('distance_to_roadway') border-red-500 @enderror"
                             placeholder="1.2">
                         @error('distance_to_roadway')
@@ -466,7 +466,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Trotuargacha masofa (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="distance_to_sidewalk" value="{{ old('distance_to_sidewalk') }}" required
+                        <input type="number" step="any" name="distance_to_sidewalk" value="{{ old('distance_to_sidewalk') }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('distance_to_sidewalk') border-red-500 @enderror"
                             placeholder="1.2">
                         @error('distance_to_sidewalk')

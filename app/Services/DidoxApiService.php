@@ -166,7 +166,17 @@ class DidoxApiService
 
     public function validateStirPinfl(string $stirPinfl): array
     {
-        $cleaned = preg_replace('/[^0-9]/', '', $stirPinfl);
+        // Trim whitespace and remove all non-numeric characters
+        $cleaned = preg_replace('/[^0-9]/', '', trim($stirPinfl));
+
+        // Return early if empty
+        if (empty($cleaned)) {
+            return [
+                'success' => false,
+                'error' => 'STIR/PINFL bo\'sh bo\'lmasligi kerak',
+                'provided_length' => 0
+            ];
+        }
 
         if (strlen($cleaned) === 14) {
             // Individual (PINFL) - 14 digits
@@ -178,7 +188,7 @@ class DidoxApiService
 
         return [
             'success' => false,
-            'error' => 'Invalid STIR/PINFL format. Must be 9 digits (TIN) or 14 digits (PINFL)',
+            'error' => 'Noto\'g\'ri STIR/PINFL formati. 9 raqam (STIR) yoki 14 raqam (PINFL) bo\'lishi kerak. Kiritilgan: ' . strlen($cleaned) . ' ta raqam',
             'provided_length' => strlen($cleaned)
         ];
     }

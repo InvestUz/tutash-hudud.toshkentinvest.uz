@@ -310,7 +310,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Uzunlik (m) <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" step="0.01" name="area_length" id="area_length"
+                            <input type="number" step="any" name="area_length" id="area_length"
                                 value="{{ old('area_length', $property->area_length ?? '0') }}"
                                 oninput="calculateFromRectangle()"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
@@ -321,7 +321,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Kenglik (m) <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" step="0.01" name="area_width" id="area_width"
+                            <input type="number" step="any" name="area_width" id="area_width"
                                 value="{{ old('area_width', $property->area_width ?? '0') }}"
                                 oninput="calculateFromRectangle()"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
@@ -403,7 +403,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Fasad uzunligi (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="building_facade_length"
+                        <input type="number" step="any" name="building_facade_length"
                             value="{{ old('building_facade_length', $property->building_facade_length) }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('building_facade_length') border-red-500 @enderror"
                             placeholder="4">
@@ -416,7 +416,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Yozgi terassa tomonlari (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="summer_terrace_sides"
+                        <input type="number" step="any" name="summer_terrace_sides"
                             value="{{ old('summer_terrace_sides', $property->summer_terrace_sides) }}" required
 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('summer_terrace_sides') border-red-500 @enderror"
                             placeholder="1.2">
@@ -429,7 +429,7 @@ class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 fo
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Yo'lgacha masofa (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="distance_to_roadway"
+                        <input type="number" step="any" name="distance_to_roadway"
                             value="{{ old('distance_to_roadway', $property->distance_to_roadway) }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('distance_to_roadway') border-red-500 @enderror"
                             placeholder="1.2">
@@ -442,7 +442,7 @@ class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 fo
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Trotuargacha masofa (m) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" step="0.01" name="distance_to_sidewalk"
+                        <input type="number" step="any" name="distance_to_sidewalk"
                             value="{{ old('distance_to_sidewalk', $property->distance_to_sidewalk) }}" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('distance_to_sidewalk') border-red-500 @enderror"
                             placeholder="1.2">
@@ -781,21 +781,28 @@ class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 fo
                         @if($property->images && count($property->images) > 0)
                             <div class="mb-4">
                                 <p class="text-sm font-medium text-gray-700 mb-2">Mavjud rasmlar:</p>
-                                <div class="grid grid-cols-2 gap-2">
+                                <div class="grid grid-cols-2 gap-2" id="existingImagesGrid">
                                     @foreach($property->images as $index => $image)
-                                        <div class="relative group">
+                                        <div class="relative group image-item" id="image-item-{{ $index }}">
                                             <img src="{{ Storage::url($image) }}" alt="Image {{ $index + 1 }}"
-                                                class="w-full h-24 object-cover rounded border">
-                                            <label class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded cursor-pointer hover:bg-red-600">
-                                                <input type="checkbox" name="delete_images[]" value="{{ $index }}" class="hidden">
+                                                class="w-full h-24 object-cover rounded border" id="img-{{ $index }}">
+                                            <input type="checkbox" name="delete_images[]" value="{{ $index }}"
+                                                id="delete-image-{{ $index }}" class="hidden delete-image-checkbox"
+                                                onchange="toggleImageDeleteState({{ $index }})">
+                                            <label for="delete-image-{{ $index }}"
+                                                class="absolute top-1 right-1 bg-red-500 text-white p-1 rounded cursor-pointer hover:bg-red-600 delete-btn"
+                                                id="delete-btn-{{ $index }}">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
                                             </label>
+                                            <div class="absolute inset-0 bg-red-500 bg-opacity-50 hidden items-center justify-center rounded" id="delete-overlay-{{ $index }}">
+                                                <span class="text-white text-xs font-bold">O'CHIRILADI</span>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
-                                <p class="text-xs text-gray-500 mt-2">Rasmni o'chirish uchun X belgisini bosing</p>
+                                <p class="text-xs text-gray-500 mt-2">Rasmni o'chirish uchun X belgisini bosing. O'chirish uchun belgilangan rasmlar qizil rangda ko'rsatiladi.</p>
                             </div>
                         @endif
 
@@ -1878,6 +1885,32 @@ class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 fo
             }
         } catch (error) {
             resultDiv.innerHTML = '<span class="text-red-600">✗ Serverda xato yuz berdi</span>';
+        }
+    };
+
+    // Toggle image delete state - show visual feedback when image is marked for deletion
+    window.toggleImageDeleteState = function(index) {
+        const checkbox = document.getElementById('delete-image-' + index);
+        const overlay = document.getElementById('delete-overlay-' + index);
+        const img = document.getElementById('img-' + index);
+        const btn = document.getElementById('delete-btn-' + index);
+
+        if (checkbox && overlay && img) {
+            if (checkbox.checked) {
+                // Show delete overlay
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                img.classList.add('opacity-50');
+                if (btn) btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                if (btn) btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+            } else {
+                // Hide delete overlay
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                img.classList.remove('opacity-50');
+                if (btn) btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                if (btn) btn.classList.add('bg-red-500', 'hover:bg-red-600');
+            }
         }
     };
 

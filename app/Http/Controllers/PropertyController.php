@@ -716,8 +716,11 @@ class PropertyController extends Controller
         $currentImages = $property->images ?? [];
 
         // Delete images
-        if ($request->has('delete_images')) {
-            foreach ($request->delete_images as $index) {
+        if ($request->has('delete_images') && is_array($request->delete_images)) {
+            $deleteIndices = array_map('intval', $request->delete_images);
+            rsort($deleteIndices); // Sort in reverse to avoid index shifting issues
+
+            foreach ($deleteIndices as $index) {
                 if (isset($currentImages[$index])) {
                     Storage::disk('public')->delete($currentImages[$index]);
                     unset($currentImages[$index]);
